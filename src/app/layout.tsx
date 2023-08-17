@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={ibm_sans.className}>
+      <body suppressHydrationWarning={true} className={ibm_sans.className}>
         <AppProvider>
           <div className="w-full min-h-screen flex-1 flex flex-col bg-kamino-blue-dark">
             <Header />

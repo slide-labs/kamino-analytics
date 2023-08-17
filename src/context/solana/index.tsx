@@ -7,11 +7,21 @@ import {
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
   BackpackWalletAdapter,
+  BraveWalletAdapter,
+  Coin98WalletAdapter,
+  GlowWalletAdapter,
+  LedgerWalletAdapter,
+  MathWalletAdapter,
+  NightlyWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
+  SolletWalletAdapter,
+  SolongWalletAdapter,
+  TorusWalletAdapter,
+  WalletConnectWalletAdapter
 } from "@solana/wallet-adapter-wallets";
 import { Connection } from "@solana/web3.js";
-import React, { Fragment, useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 // import HELIUS_API from "@/app/utils/helius";
 
 interface Props {
@@ -52,6 +62,16 @@ export const SolanaProvider: React.FC<Props> = ({ children, ...rest }) => {
       new PhantomWalletAdapter(),
       new SolflareWalletAdapter(),
       new BackpackWalletAdapter(),
+      new LedgerWalletAdapter(),
+      new BraveWalletAdapter(),
+      new NightlyWalletAdapter(),
+      new WalletConnectWalletAdapter("mainnet-beta" as any),
+      new GlowWalletAdapter(),
+      new SolletWalletAdapter(),
+      new Coin98WalletAdapter(),
+      new TorusWalletAdapter(),
+      new SolongWalletAdapter(),
+      new MathWalletAdapter()
     ],
     []
   );

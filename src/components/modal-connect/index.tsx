@@ -1,9 +1,11 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import classNames from "@/utils/class-name";
 import Image from "next/image";
 import { useSolana } from "@/context/solana";
+import CardBoxCustom from "../card-box-custom";
+import IconClose from "../icons/icon-close";
 
 const ModalConnect: React.FC = () => {
   const { setOpenConnect } = useSolana();
@@ -17,54 +19,46 @@ const ModalConnect: React.FC = () => {
     [setOpenConnect, select]
   );
 
-  // const options = useMemo(() => {
-  //   const installedWallets = wallets.filter(
-  //     (wallet) => wallet.readyState === "Installed"
-  //   );
-
-  //   return installedWallets;
-  // }, [wallets]);
-
   return (
     <div className="h-full w-full flex items-center justify-center fixed top-0 left-0 z-[1050]">
       <div
-        className="bg-[#000000B2] fixed top-0 w-full h-full"
+        className="bg-[#00000073] fixed top-0 w-full h-full"
         onClick={() => setOpenConnect(false)}
       />
-      <div className="bg-[#10141f] md:w-[50%] w-[93%] max-w-[400px] rounded-[10px] overflow-y-auto min-h-[300px] max-h-[600px] py-4 relative">
+      <CardBoxCustom className="w-[320px] max-w-[320px]">
+        <>
         <button
           onClick={() => setOpenConnect(false)}
-          className="bg-[#1a1f2e] absolute right-[18px] top-[18px] rounded-[50%] p-3 flex items-center justify-center close-social"
+          className="absolute right-3 top-3.5 w-5"
         >
-          <svg width="14" height="14">
-            <path d="M14 12.461 8.3 6.772l5.234-5.233L12.006 0 6.772 5.234 1.54 0 0 1.539l5.234 5.233L0 12.006l1.539 1.528L6.772 8.3l5.69 5.7L14 12.461z" />
-          </svg>
+          <IconClose />
         </button>
-        <span className="text-white text-[24px] font-medium text-center mx-auto font-dm max-w-[250px] my-5 flex">
-          Choose any option to continue
-        </span>
+        <div className="w-full overflow-y-auto min-h-[300px] max-h-[700px] relative pb-6 pt-1">
+          <span className="text-white font-medium text-xl text-center font-dm mb-6 flex justify-center items-center">
+            Select your wallet
+          </span>
 
-        <div>
-          {wallets.map((wallet) => (
-            <div
-              onClick={() => handleConnectPhantom(wallet.adapter.name)}
-              key={wallet.adapter.name}
-              className="flex items-center h-[48px] cursor-pointer hover:bg-[#1a1f2e] px-[24px]"
-            >
-              <Image
-                className={classNames("w-[26px] h-[26px] mr-3")}
-                src={wallet.adapter.icon}
-                alt={wallet.adapter.name}
-                width={24}
-                height={24}
-              />
-              <span className="text-white text-base font-dm">
-                {wallet.adapter.name}
-              </span>
-            </div>
-          ))}
+          <div>
+            {wallets.map((wallet) => (
+              <div
+                onClick={() => handleConnectPhantom(wallet.adapter.name)}
+                key={wallet.adapter.name}
+                className="flex items-center h-[40px] cursor-pointer px-4 text-white justify-between hover:bg-[#49afe926] hover:text-kamino-blue-light"
+              >
+                <span className="text-base font-medium">{wallet.adapter.name}</span>
+                <Image
+                  className={classNames("w-[26px] h-[26px]")}
+                  src={wallet.adapter.icon}
+                  alt={wallet.adapter.name}
+                  width={24}
+                  height={24}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+        </>
+      </CardBoxCustom>
     </div>
   );
 };

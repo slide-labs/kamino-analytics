@@ -58,17 +58,17 @@ const ConnectWallet: React.FC<Props> = ({ className }) => {
           !wallet.connected ? "bg-kamino-blue-light" : "bg-[#222b3c]" 
         )}
       >
-        <span className="text-white text-sm font-bold uppercase">
-          {!true ? (
+        <span className="text-white text-sm font-bold uppercase flex items-center">
+          {wallet.connected ? (
             <>
               <Image
-                className="mr-3"
+                className="mr-2"
                 width={21}
                 height={21}
                 src={wallet.wallet?.adapter.icon || ""}
                 alt="wallet_icon"
               />
-              {truncateWallet("918928918298298129829812", 10)}
+              {truncateWallet(wallet.publicKey?.toBase58(), 10)}
             </>
           ) : (
             "Connect wallet"
