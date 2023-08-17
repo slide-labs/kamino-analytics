@@ -2,6 +2,7 @@
 
 import React from "react";
 import IconLogo from "../icons/icon-logo";
+import Input from "../input";
 
 const Header: React.FC = () => {
   return (
@@ -9,7 +10,13 @@ const Header: React.FC = () => {
       <div className="container-main w-full h-full flex items-center justify-between">
         <div className="flex items-center">
           <IconLogo />
-          <span className="text-[#5F7183] text-xs tracking-[0.48px] ml-2 mt-1">Analytics</span>
+          <span className="text-[#5F7183] text-xs tracking-[0.48px] ml-2 mt-1">
+            Analytics
+          </span>
+        </div>
+
+        <div className="w-[360px]">
+          <Input />
         </div>
       </div>
     </header>
@@ -17,4 +24,3 @@ const Header: React.FC = () => {
 };
 
 export default Header;
- 
