@@ -1,6 +1,6 @@
 "use client";
 
-import { ibm_mono } from "@/app/fonts";
+import { ibm_mono } from "@/app/utils/fonts";
 import React from "react";
 
 interface Props {

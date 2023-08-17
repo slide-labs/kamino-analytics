@@ -94,7 +94,7 @@ export default Menu;
 const menuRoutes = [
   {
     title: "Stats",
-    route: "/stats",
+    route: "/",
     icon: IconStats,
   },
   {

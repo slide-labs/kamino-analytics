@@ -1,6 +1,10 @@
-import Image from 'next/image'
-import StatsTemplate from './templates/stats'
+"use serve"
 
-export default function Home() {
+import React from 'react';
+import StatsTemplate from './templates/stats';
+
+const Stats: React.FC = () => {
   return <StatsTemplate />
 }
+
+export default Stats;
