@@ -151,3 +151,50 @@ input::-webkit-inner-spin-button {
   border-width: 5px;
   border-color: transparent transparent #091326 #091326;
 }
+
+.wallet-adapter-dropdown-list {
+  grid-row-gap: 5px;
+  background: #222b3c;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  display: grid;
+  font-family: DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
+  grid-template-rows: 1fr;
+  list-style: none;
+  margin: 0;
+  opacity: 0;
+  padding: 10px 0px;
+  position: absolute;
+  width: 165px;
+  right: 0;
+  top: 100%;
+  transition: opacity 0.2s ease, visibility 0.2s, -webkit-transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s,
+    -webkit-transform 0.2s ease;
+  visibility: hidden;
+  z-index: 99;
+}
+
+.wallet-adapter-dropdown-list-active {
+  opacity: 1;
+  -webkit-transform: translateY(10px);
+  transform: translateY(10px);
+  visibility: visible;
+}
+
+.wallet-adapter-dropdown-list-item {
+  align-items: center;
+  border: none;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  font-size: 14px;
+  font-weight: 600;
+  height: 35px;
+  outline: none;
+  white-space: nowrap;
+  width: 100%;
+  padding: 0px 10px;
+}
