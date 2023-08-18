@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import IconLogo from "../icons/icon-logo";
 import Input from "../input";
 import ConnectWallet from "../connect-wallet";
@@ -9,6 +9,11 @@ import { useSolana } from "@/context/solana";
 
 const Header: React.FC = () => {
   const { openConnect } = useSolana();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 w-full h-[72px] bg-kamino-blue-dark border-b border-[#FFFFFF14] z-20">
@@ -24,7 +29,7 @@ const Header: React.FC = () => {
           <Input />
         </div>
 
-        <ConnectWallet />
+        {isClient && <ConnectWallet />}
       </div>
 
       {openConnect && <ModalConnect />}
