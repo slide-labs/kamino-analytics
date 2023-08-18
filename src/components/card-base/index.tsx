@@ -5,7 +5,7 @@ import React from "react";
 interface Props {
   data: {
     title: string;
-    value: string;
+    value: string | number;
   };
 }
 

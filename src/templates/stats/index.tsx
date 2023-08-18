@@ -12,36 +12,52 @@ import Table from "@/components/table";
 import Link from "next/link";
 import { truncateWallet } from "@/utils/truncate";
 import formatLargeNumber from "@/utils/format-large-number";
+import { GeneralStats, Volume } from "@/types/strategies";
 
-const StatsTemplate: React.FC = () => {
+interface Props {
+  generalStats: GeneralStats;
+  volPeriod24h: Volume;
+  volPeriod7d: Volume;
+}
+
+const StatsTemplate: React.FC<Props> = ({
+  generalStats,
+  volPeriod24h,
+  volPeriod7d,
+}) => {
   const [filterVaultUsed, setFilterVaultUsed] = useState("All");
   const [filterPools, setFilterPools] = useState("All");
   const [filterTransactions, setFilterTransactions] = useState("All");
 
-  const generalStats = useMemo(() => {
+  const generalStatsBlock = useMemo(() => {
     return [
       {
         title: "TVL",
-        value: "$279.2M",
+        value: "$" + formatLargeNumber(generalStats.tvl),
       },
       {
         title: "Volume 24H",
-        value: "$456K",
+        value: "$" + formatLargeNumber(volPeriod24h.amount),
       },
       {
         title: "Volume 7D",
-        value: "$5.25M",
+        value: "$" + formatLargeNumber(volPeriod7d.amount),
       },
       {
         title: "Total Fees",
-        value: "$200K",
+        value: "$" + formatLargeNumber(generalStats.allTimeFees),
       },
       {
         title: "Total Users",
         value: "5.000",
       },
     ];
-  }, []);
+  }, [
+    generalStats.allTimeFees,
+    generalStats.tvl,
+    volPeriod24h.amount,
+    volPeriod7d.amount,
+  ]);
 
   const filteredChartVolume = useMemo(() => {
     const chart = historyVolume.map((item: { t: number; v: number }) => {
@@ -98,7 +114,7 @@ const StatsTemplate: React.FC = () => {
       <h1 className="text-white font-semibold text-[28px] mb-[30px]">Stats</h1>
 
       <div className="w-full grid grid-cols-5 gap-x-[7px] mb-3">
-        {generalStats.map((item, index) => (
+        {generalStatsBlock.map((item, index) => (
           <CardBase key={index} data={item} />
         ))}
       </div>
@@ -107,14 +123,14 @@ const StatsTemplate: React.FC = () => {
         <div className="w-full h-full">
           <LineChart
             bg={"#151C2E"}
-            isDateActive={false}
+            isDateActive
             series={filteredChartVolume}
             height={250}
           />
         </div>
       </CardBoxCustom>
 
-     <div className="flex items-center mb-4 gap-x-[16px]">
+      <div className="flex items-center mb-4 gap-x-[16px]">
         <CardBoxCustom className="w-1/2 h-[350px]" title="New Users">
           <div className="w-full h-full">
             <LineChart
@@ -196,7 +212,7 @@ const StatsTemplate: React.FC = () => {
             />
           </div>
         </CardBoxCustom>
-      </div> 
+      </div>
     </div>
   );
 };
