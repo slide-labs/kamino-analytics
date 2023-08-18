@@ -29,7 +29,7 @@ const ModalConnect: React.FC = () => {
         <>
         <button
           onClick={() => setOpenConnect(false)}
-          className="absolute right-3 top-3.5 w-5"
+          className="absolute right-0 top-3.5 w-4 z-20"
         >
           <IconClose />
         </button>

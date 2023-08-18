@@ -158,7 +158,7 @@ const ConnectWallet: React.FC<Props> = ({ className }) => {
             style={ibm_sans.style}
             key={index}
             onClick={item.action}
-            className="wallet-adapter-dropdown-list-item hover:bg-[#49afe926] hover:text-kamino-blue-light"
+            className="wallet-adapter-dropdown-list-item text-kamino-steel-blue hover:bg-[#49afe926] hover:text-kamino-blue-light"
           >
             <div className="w-6">
               <item.icon />

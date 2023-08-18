@@ -1,0 +1,26 @@
+.card-box-custom .block-bottom-right,
+.card-box-custom .block-top-left {
+  position: absolute;
+  width: 0px;
+  height: 0px;
+  z-index: 10;
+  border-style: solid;
+  border-width: 0 0 15px 15px;
+  border-color: transparent transparent #151c2e transparent;
+}
+
+.card-box-custom .cut-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: url("/icons/card-cut-corner.svg") 0 0 no-repeat;
+  z-index: 12;
+}
+
+.card-box-custom .block-custom {
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  z-index: 0;
+  background-color: #464f66;
+}

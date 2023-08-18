@@ -1,5 +1,6 @@
 "use client";
 
+import HELIUS_API from "@/utils/helius";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -18,7 +19,7 @@ import {
   SolletWalletAdapter,
   SolongWalletAdapter,
   TorusWalletAdapter,
-  WalletConnectWalletAdapter
+  WalletConnectWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { Connection } from "@solana/web3.js";
 import React, { useContext, useMemo, useState } from "react";
@@ -49,13 +50,7 @@ export const SolanaProvider: React.FC<Props> = ({ children, ...rest }) => {
   );
   const [loading, setLoading] = useState(false);
 
-  const connection = useMemo(
-    () =>
-      new Connection(
-        "https://rpc.helius.xyz/?api-key=dabd2486-2df4-4bcf-b1ce-66510cfc2773"
-      ),
-    []
-  );
+  const connection = useMemo(() => new Connection(HELIUS_API), []);
 
   const wallets = useMemo(
     () => [
@@ -71,7 +66,7 @@ export const SolanaProvider: React.FC<Props> = ({ children, ...rest }) => {
       new Coin98WalletAdapter(),
       new TorusWalletAdapter(),
       new SolongWalletAdapter(),
-      new MathWalletAdapter()
+      new MathWalletAdapter(),
     ],
     []
   );
@@ -99,11 +94,7 @@ export const SolanaProvider: React.FC<Props> = ({ children, ...rest }) => {
 
   return (
     <SolanaContext.Provider value={value} {...rest}>
-      <ConnectionProvider
-        endpoint={
-          "https://rpc.helius.xyz/?api-key=dabd2486-2df4-4bcf-b1ce-66510cfc2773"
-        }
-      >
+      <ConnectionProvider endpoint={HELIUS_API}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>{children}</WalletModalProvider>
         </WalletProvider>
