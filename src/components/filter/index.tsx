@@ -20,8 +20,10 @@ const Filter: React.FC<Props> = ({ data, currentValue, setCurrentValue }) => {
           key={index}
           onClick={() => setCurrentValue && setCurrentValue(item.title)}
           className={classNames(
-            "text-xs font-medium px-2 flex leading-[12px] items-center justify-center hover:text-kamino-blue-light border-r border-[#242F42] last-of-type:border-0 cursor-pointer first-of-type:pl-1",
-            item.title === currentValue ? "text-kamino-blue-light" : "text-kamino-steel-blue"
+            "text-xs font-medium px-2 flex leading-[12px] items-center justify-center hover:text-kamino-blue-light border-r border-[#242F42] last-of-type:border-0 cursor-pointer first-of-type:pl-1 last-of-type:pr-0",
+            item.title === currentValue
+              ? "text-kamino-blue-light"
+              : "text-kamino-steel-blue"
           )}
         >
           {item.title}

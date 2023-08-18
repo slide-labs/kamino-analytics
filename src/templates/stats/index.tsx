@@ -1,6 +1,7 @@
 "use client";
 
 import CardBoxCustom from "@/components/card-box-custom";
+import { keys, values } from "lodash";
 import React, { useMemo, useState } from "react";
 // import formatLargeNumber from "@/utils/format-large-number";
 import CardBase from "@/components/card-base";
@@ -16,18 +17,19 @@ import { GeneralStats, Volume } from "@/types/strategies";
 
 interface Props {
   generalStats: GeneralStats;
-  volPeriod24h: Volume;
-  volPeriod7d: Volume;
+  volumePerPeriod: {
+    [key: string]: Volume
+  };
 }
 
 const StatsTemplate: React.FC<Props> = ({
   generalStats,
-  volPeriod24h,
-  volPeriod7d,
+  volumePerPeriod
 }) => {
   const [filterVaultUsed, setFilterVaultUsed] = useState("All");
   const [filterPools, setFilterPools] = useState("All");
   const [filterTransactions, setFilterTransactions] = useState("All");
+  const [filterVolume, setFilterVolume] = useState("30d");
 
   const generalStatsBlock = useMemo(() => {
     return [
@@ -37,11 +39,11 @@ const StatsTemplate: React.FC<Props> = ({
       },
       {
         title: "Volume 24H",
-        value: "$" + formatLargeNumber(volPeriod24h.amount),
+        value: "$" + formatLargeNumber(volumePerPeriod["24h"].amount),
       },
       {
         title: "Volume 7D",
-        value: "$" + formatLargeNumber(volPeriod7d.amount),
+        value: "$" + formatLargeNumber(volumePerPeriod["7d"].amount),
       },
       {
         title: "Total Fees",
@@ -52,12 +54,7 @@ const StatsTemplate: React.FC<Props> = ({
         value: "5.000",
       },
     ];
-  }, [
-    generalStats.allTimeFees,
-    generalStats.tvl,
-    volPeriod24h.amount,
-    volPeriod7d.amount,
-  ]);
+  }, [generalStats.allTimeFees, generalStats.tvl, volumePerPeriod]);
 
   const filteredChartVolume = useMemo(() => {
     const chart = historyVolume.map((item: { t: number; v: number }) => {
@@ -123,7 +120,8 @@ const StatsTemplate: React.FC<Props> = ({
         <div className="w-full h-full">
           <LineChart
             bg={"#151C2E"}
-            isDateActive
+            currentFilter={filterVolume}
+            setCurrentFilter={setFilterVolume}
             series={filteredChartVolume}
             height={250}
           />
@@ -135,7 +133,6 @@ const StatsTemplate: React.FC<Props> = ({
           <div className="w-full h-full">
             <LineChart
               bg={"#151C2E"}
-              isDateActive={false}
               series={filteredChartVolume}
               height={250}
               colors={colorsLineUsers as any}
@@ -147,7 +144,6 @@ const StatsTemplate: React.FC<Props> = ({
           <div className="w-full h-full">
             <LineChart
               bg={"#151C2E"}
-              isDateActive={false}
               series={filteredChartVolume}
               height={250}
               colors={colorsLineNewUsers as any}

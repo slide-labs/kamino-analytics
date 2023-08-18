@@ -129,7 +129,7 @@ const ColumnChart: React.FC<Props> = ({
   return (
     <Fragment>
       {currentFilter && (
-        <div className="absolute right-4 top-6">
+        <div className="absolute right-3 top-6">
           <Filter
             data={formats}
             currentValue={currentFilter}

@@ -4,9 +4,11 @@ import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
 import React, { Fragment, memo, useMemo } from "react";
 import classNames from "@/utils/class-name";
+import Filter from "@/components/filter";
 
 interface Props {
-  isDateActive: boolean;
+  currentFilter?: string;
+  setCurrentFilter?: React.Dispatch<React.SetStateAction<string>>;
   disableMarker?: boolean;
   series: any[];
   minValue?: number;
@@ -23,16 +25,14 @@ interface Props {
 }
 
 const LineChart: React.FC<Props> = ({
-  isDateActive,
+  currentFilter,
+  setCurrentFilter,
   series,
   disableMarker,
   minValue,
   maxValue,
-  days,
   height,
   bg,
-  onChangeDays,
-  label = "30 Days",
   colors = {
     lineColor: "#49AFE9",
     stops: [
@@ -45,8 +45,8 @@ const LineChart: React.FC<Props> = ({
     () => [
       { title: "24H", value: "1" },
       { title: "7D", value: "7" },
-      { title: "14D", value: "14" },
       { title: "30D", value: "30" },
+      { title: "All", value: "all" },
     ],
     []
   );
@@ -86,7 +86,7 @@ const LineChart: React.FC<Props> = ({
         format: "${text}",
         labels: {
           style: { color: "#FFFFFF99", fontWeight: "400", fontSize: "12px" },
-          enabled: disableMarker ? false : true
+          enabled: disableMarker ? false : true,
         },
         tickAmount: 7,
         crosshair: true,
@@ -113,34 +113,26 @@ const LineChart: React.FC<Props> = ({
               x2: 0,
               y2: 1,
             },
-            stops: colors.stops
+            stops: colors.stops,
           },
-        }
+        },
       },
-      series: [{ data: series.map((item) => item.total || item.value || 0) }],
+      series: series
     };
   }, [height, bg, maxValue, minValue, disableMarker, colors, series]);
 
   return (
     <Fragment>
-      <HighchartsReact highcharts={Highcharts} options={options} />
-
-      {isDateActive && (
-        <div className="flex justify-end">
-          {formats.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => onChangeDays && onChangeDays(item.value)}
-              className={classNames(
-                "text-gray-400 border border-white text-xs px-4 py-1 rounded-full font-medium mr-3 hover:bg-gray-300 hover:bg-opacity-30",
-                item.value === days && "bg-gray-300 bg-opacity-30"
-              )}
-            >
-              {item.title}
-            </button>
-          ))}
+      {currentFilter && (
+        <div className="absolute right-3 top-6">
+          <Filter
+            data={formats}
+            currentValue={currentFilter}
+            setCurrentValue={setCurrentFilter}
+          />
         </div>
       )}
+      <HighchartsReact highcharts={Highcharts} options={options} />
     </Fragment>
   );
 };

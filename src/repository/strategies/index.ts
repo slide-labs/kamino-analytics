@@ -7,27 +7,30 @@ import {
 import api from "@/utils/api-service";
 import { network } from "@/utils/constants";
 
-export const fetchVolume = async (time: TypePeriod) => {
+export const fetchVolume = async () => {
   const volume = await api.get(`/strategies/volume?env=${network}&status=LIVE`);
 
   const kaminoVol = volume.data.map(
     (item: PoolAndKaminoVolumes) => item.kaminoVolume
   );
 
-  let sum = 0;
+  const data: { [key: string]: Volume } = {};
 
   kaminoVol.forEach((kaminoItem: Volume[]) => {
-    const filter = kaminoItem.filter((item: Volume) => item.period === time);
-    if (filter.length > 0) {
-      const convertVolToNumber = Number(filter[0].amount);
-      sum += convertVolToNumber;
-    }
-  });
+    kaminoItem.forEach((item: Volume) => {
+      const period = item.period;
+      const convertVolToNumber = Number(item.amount);
 
-  const data: Volume = {
-    period: time,
-    amount: sum,
-  };
+      if (!data[period]) {
+        data[period] = {
+          period: period,
+          amount: 0,
+        };
+      }
+
+      data[period].amount += convertVolToNumber;
+    });
+  });
 
   return data;
 };

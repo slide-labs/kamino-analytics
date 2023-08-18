@@ -11,15 +11,13 @@ export const metadata = {
 
 const Stats: React.FC = async () => {
   const generalStats = await fetchGeneralStats();
-  const volPeriod24h = await fetchVolume("24h" as TypePeriod);
-  const volPeriod7d = await fetchVolume("7d" as TypePeriod);
+  const volumePerPeriod = await fetchVolume();
 
 
   return (
     <StatsTemplate
       generalStats={generalStats}
-      volPeriod24h={volPeriod24h}
-      volPeriod7d={volPeriod7d}
+      volumePerPeriod={volumePerPeriod}
     />
   );
 };
