@@ -3,9 +3,7 @@
 import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
 import React, { Fragment, memo, useMemo } from "react";
-import classNames from "@/utils/class-name";
 import Filter from "@/components/filter";
-import { ibm_mono } from "@/utils/fonts";
 import moment from "moment";
 import formatLargeNumber from "@/utils/format-large-number";
 
@@ -45,12 +43,7 @@ const LineChart: React.FC<Props> = ({
   },
 }) => {
   const formats = useMemo(
-    () => [
-      { title: "24H", value: "1" },
-      { title: "7D", value: "7" },
-      { title: "30D", value: "30" },
-      { title: "All", value: "all" },
-    ],
+    () => [{ value: "24h" }],
     []
   );
 
@@ -107,12 +100,18 @@ const LineChart: React.FC<Props> = ({
             return `
                 <div style="font-family" class="custom-tooltip">
                   <div class="flex items-center justify-between mb-1">
-                    <span>${moment.unix(lineData.timestamp).format("DD/MM/YYYY")}</span>
+                    <span>${moment
+                      .unix(lineData.timestamp)
+                      .format("DD/MM/YYYY")}</span>
 
-                    <span class="text-kamino-steel-blue">${moment.unix(lineData.timestamp).format("HH:mm A")}</span>
+                    <span class="text-kamino-steel-blue">${moment
+                      .unix(lineData.timestamp)
+                      .format("hh:mm A")}</span>
                   </div>
                
-                  <span class="mt-4">• Vol 24h: $${formatLargeNumber(lineData.value)}</span>
+                  <span class="mt-4">• Vol 24h: $${formatLargeNumber(
+                    lineData.value
+                  )}</span>
                 </div>
               `;
           }
@@ -139,7 +138,16 @@ const LineChart: React.FC<Props> = ({
       },
       series: [{ data: series.map((item) => item.value || 0) }],
     };
-  }, [height, bg, maxValue, minValue, disableMarker, colors.lineColor, colors.stops, series]);
+  }, [
+    height,
+    bg,
+    maxValue,
+    minValue,
+    disableMarker,
+    colors.lineColor,
+    colors.stops,
+    series,
+  ]);
 
   return (
     <Fragment>

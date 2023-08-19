@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_APP_API_URL,
+  baseURL: "https://api.hubbleprotocol.io"
 });
 
 export default api;

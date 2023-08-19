@@ -13,26 +13,30 @@ import Table from "@/components/table";
 import Link from "next/link";
 import { truncateWallet } from "@/utils/truncate";
 import formatLargeNumber from "@/utils/format-large-number";
-import { GeneralStats, Volume, VolumeHistoryChart } from "@/types/strategies";
-import moment from "moment";
+import {
+  GeneralStats,
+  TYPE_PERIOD,
+  Volume
+} from "@/types/strategies";
+import { useStrategies } from "@/context/strategies";
 
 interface Props {
   generalStats: GeneralStats;
   volumePerPeriod: {
-    [key: string]: Volume
+    [key: string]: Volume;
   };
-  historyVolume: VolumeHistoryChart[]
 }
 
-const StatsTemplate: React.FC<Props> = ({
-  generalStats, 
-  volumePerPeriod,
-  historyVolume
-}) => {
+const StatsTemplate: React.FC<Props> = ({ generalStats, volumePerPeriod }) => {
+  const { fetchHistoryVolume, historyVolume } = useStrategies();
   const [filterVaultUsed, setFilterVaultUsed] = useState("All");
   const [filterPools, setFilterPools] = useState("All");
   const [filterTransactions, setFilterTransactions] = useState("All");
-  const [filterVolume, setFilterVolume] = useState("30d");
+  const [filterVolume, setFilterVolume] = useState("24h");
+
+  useEffect(() => {
+    fetchHistoryVolume(filterVolume as TYPE_PERIOD);
+  }, [filterVolume]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const generalStatsBlock = useMemo(() => {
     return [
@@ -62,7 +66,7 @@ const StatsTemplate: React.FC<Props> = ({
   const chartDataVolume = useMemo(() => {
     const chart = historyVolume.map((item) => {
       return {
-        timestamp: moment(item.date).unix(),
+        timestamp: item.date,
         value: item.volume24hUsd,
       };
     });

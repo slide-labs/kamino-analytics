@@ -22,7 +22,13 @@ import {
   WalletConnectWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { Connection } from "@solana/web3.js";
-import React, { useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 // import HELIUS_API from "@/app/utils/helius";
 
 interface Props {

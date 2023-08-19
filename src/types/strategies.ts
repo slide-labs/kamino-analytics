@@ -18,7 +18,7 @@ export interface Volume {
 }
 
 export interface VolumeHistory {
-  date: Date;
+  date: string;
   feesAndRewards24hUsd: string;
   volume24hUsd: string;
   cumulativeFeesAndRewardsUsd: string;
@@ -26,7 +26,7 @@ export interface VolumeHistory {
 }
 
 export interface VolumeHistoryChart {
-  date: Date;
+  date: number;
   volume24hUsd: number;
 }
 
