@@ -1,8 +1,8 @@
 "use client";
 
 import CardBoxCustom from "@/components/card-box-custom";
-import { keys, values } from "lodash";
-import React, { useMemo, useState } from "react";
+// import { keys, values } from "lodash";
+import React, { useEffect, useMemo, useState } from "react";
 // import formatLargeNumber from "@/utils/format-large-number";
 import CardBase from "@/components/card-base";
 import LineChart from "@/components/charts/line-chart";
@@ -13,18 +13,21 @@ import Table from "@/components/table";
 import Link from "next/link";
 import { truncateWallet } from "@/utils/truncate";
 import formatLargeNumber from "@/utils/format-large-number";
-import { GeneralStats, Volume } from "@/types/strategies";
+import { GeneralStats, Volume, VolumeHistoryChart } from "@/types/strategies";
+import moment from "moment";
 
 interface Props {
   generalStats: GeneralStats;
   volumePerPeriod: {
     [key: string]: Volume
   };
+  historyVolume: VolumeHistoryChart[]
 }
 
 const StatsTemplate: React.FC<Props> = ({
-  generalStats,
-  volumePerPeriod
+  generalStats, 
+  volumePerPeriod,
+  historyVolume
 }) => {
   const [filterVaultUsed, setFilterVaultUsed] = useState("All");
   const [filterPools, setFilterPools] = useState("All");
@@ -56,16 +59,16 @@ const StatsTemplate: React.FC<Props> = ({
     ];
   }, [generalStats.allTimeFees, generalStats.tvl, volumePerPeriod]);
 
-  const filteredChartVolume = useMemo(() => {
-    const chart = historyVolume.map((item: { t: number; v: number }) => {
+  const chartDataVolume = useMemo(() => {
+    const chart = historyVolume.map((item) => {
       return {
-        timestamp: item.t,
-        value: item.v,
+        timestamp: moment(item.date).unix(),
+        value: item.volume24hUsd,
       };
     });
 
     return chart;
-  }, []);
+  }, [historyVolume]);
 
   const data = useMemo(() => {
     return [
@@ -122,7 +125,7 @@ const StatsTemplate: React.FC<Props> = ({
             bg={"#151C2E"}
             currentFilter={filterVolume}
             setCurrentFilter={setFilterVolume}
-            series={filteredChartVolume}
+            series={chartDataVolume}
             height={250}
           />
         </div>
@@ -131,23 +134,23 @@ const StatsTemplate: React.FC<Props> = ({
       <div className="flex items-center mb-4 gap-x-[16px]">
         <CardBoxCustom className="w-1/2 h-[350px]" title="New Users">
           <div className="w-full h-full">
-            <LineChart
+            {/* <LineChart
               bg={"#151C2E"}
-              series={filteredChartVolume}
+              series={chartDataVolume}
               height={250}
               colors={colorsLineUsers as any}
-            />
+            /> */}
           </div>
         </CardBoxCustom>
 
         <CardBoxCustom className="w-1/2 h-[350px]" title="Users">
           <div className="w-full h-full">
-            <LineChart
+            {/* <LineChart
               bg={"#151C2E"}
-              series={filteredChartVolume}
+              series={chartDataVolume}
               height={250}
               colors={colorsLineNewUsers as any}
-            />
+            /> */}
           </div>
         </CardBoxCustom>
       </div>
@@ -218,32 +221,6 @@ export default StatsTemplate;
 //
 // utils
 //
-
-const historyVolume = [
-  { t: 1678933085, v: 200000 },
-
-  { t: 1679071598, v: 300000 },
-
-  { t: 1679315636, v: 500000 },
-
-  { t: 1679414755, v: 200000 },
-
-  { t: 1680173515, v: 350000 },
-
-  { t: 1680193016, v: 450000 },
-
-  { t: 1680314156, v: 650000 },
-
-  { t: 1680373788, v: 850000 },
-
-  { t: 1680394280, v: 550000 },
-
-  { t: 1680707389, v: 300000 },
-
-  { t: 1681503408, v: 760000 },
-
-  { t: 1684967324, v: 990000 },
-];
 
 const colorsLineUsers = {
   lineColor: "#49AFE9",

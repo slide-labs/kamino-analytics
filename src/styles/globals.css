@@ -5,7 +5,6 @@
 @import url("./_input.css");
 @import url("./_wallet-adapter.css");
 
-
 body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -76,3 +75,21 @@ input::-webkit-inner-spin-button {
   border-color: transparent transparent #091326 #091326;
 }
 
+.custom-tooltip {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  height: 85px;
+  border-radius: 0px;
+  backdrop-filter: blur(70px);
+  padding: 15px;
+  font-family: "__IBM_Plex_Mono_b094e2", "__IBM_Plex_Mono_Fallback_b094e2";
+  color: #fff;
+  font-weight: 500;
+  border: 1px solid #222b3c;
+  box-shadow: 1px 1px 5px #091326;
+}
+
+.highcharts-tooltip {
+  opacity: 0;
+}
