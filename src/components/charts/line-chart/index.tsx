@@ -139,17 +139,7 @@ const LineChart: React.FC<Props> = ({
       },
       series: [{ data: series.map((item) => item.value || 0) }],
     };
-  }, [
-    height,
-    bg,
-    maxValue,
-    minValue,
-    disableMarker,
-    colors.lineColor,
-    colors.stops,
-    series,
-    currentFilter,
-  ]);
+  }, [height, bg, maxValue, minValue, disableMarker, colors.lineColor, colors.stops, series]);
 
   return (
     <Fragment>
