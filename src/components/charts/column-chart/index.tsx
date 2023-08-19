@@ -1,6 +1,7 @@
 "use client";
 
 import Filter from "@/components/filter";
+import formatLargeNumber from "@/utils/format-large-number";
 import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
 import React, { Fragment, useMemo } from "react";
@@ -91,13 +92,22 @@ const ColumnChart: React.FC<Props> = ({
       },
       colors: colors,
       tooltip: {
-        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-        pointFormat:
-          '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-          '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
-        footerFormat: "</table>",
-        shared: true,
         useHTML: true,
+        formatter: function (this: Highcharts.TooltipFormatterContextObject) {
+          const { point } = this;
+          if (point) {
+            const dataIndex = point.index;
+            // const lineData = series[dataIndex];
+
+            return `
+                <div style="font-family" class="custom-tooltip">
+                  <span class="mt-4">• Vol 24h: $${formatLargeNumber(
+                    2
+                  )}</span>
+                </div>
+              `;
+          }
+        },
       },
       plotOptions: {
         column: {

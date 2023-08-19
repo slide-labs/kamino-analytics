@@ -86,6 +86,7 @@ const StackedColumnChart: React.FC<Props> = ({
         labels: {
           style: { color: "#FFFFFF99", fontWeight: "400", fontSize: "12px" },
           enabled: disableMarker ? false : true,
+          format: '${text}'
         },
         tickAmount: 7,
         crosshair: true,

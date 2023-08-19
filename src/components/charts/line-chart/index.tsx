@@ -79,10 +79,10 @@ const LineChart: React.FC<Props> = ({
         },
         max: maxValue,
         min: minValue,
-        format: "${text}",
         labels: {
           style: { color: "#FFFFFF99", fontWeight: "400", fontSize: "12px" },
           enabled: disableMarker ? false : true,
+          format: '${text}'
         },
         tickAmount: 7,
         crosshair: true,

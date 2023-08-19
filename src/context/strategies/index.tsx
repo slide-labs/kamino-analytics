@@ -1,6 +1,12 @@
 "use client";
 
-import { TYPE_PERIOD, VolumeHistoryChart } from "@/types/strategies";
+import {
+  PoolAndKaminoVolumes,
+  TYPE_PERIOD,
+  VolPerPeriod,
+  Volume,
+  VolumeHistoryChart,
+} from "@/types/strategies";
 import api from "@/utils/api-service";
 import { network } from "@/utils/constants";
 import moment from "moment";
@@ -12,7 +18,13 @@ interface Props {
 
 export type ContextValue = {
   historyVolume: VolumeHistoryChart[];
-  fetchHistoryVolume: (period: TYPE_PERIOD) => Promise<void>
+  allTimeFees: number;
+  tvl: number;
+  volPerPeriod: VolPerPeriod | undefined;
+  fetchHistoryVolume: (period: TYPE_PERIOD) => Promise<void>;
+  fetchAllTimeFees: () => Promise<void>;
+  fetchTvl: () => Promise<void>;
+  fetchVolume: () => Promise<void>;
 };
 
 export const StrategiesContext = React.createContext<ContextValue | undefined>(
@@ -21,15 +33,18 @@ export const StrategiesContext = React.createContext<ContextValue | undefined>(
 
 export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const [historyVolume, setHistoryVolume] = useState<VolumeHistoryChart[]>([]);
+  const [allTimeFees, setAllTimeFees] = useState<number>(0);
+  const [tvl, setTvl] = useState<number>(0);
+  const [volPerPeriod, setVolPerPeriod] = useState<{
+    [key: string]: Volume;
+  }>();
 
   const fetchAllStrategies = useCallback(async () => {
     try {
       const response = await api.get(`/strategies?env=${network}&status=LIVE`);
 
       return response.data;
-    } catch {
-      throw new Error("Failed in fetchAllStrategies");
-    }
+    } catch {}
   }, []);
 
   const fetchHistoryVolume = useCallback(
@@ -46,7 +61,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
 
           metricsHistory.data.forEach(
             ({ date, volume24hUsd }: VolumeHistoryChart) => {
-              const convertDate = new Date(date)
+              const convertDate = new Date(date);
               const timestamp = moment(convertDate).unix();
 
               dateToVolumeMap.set(
@@ -65,19 +80,84 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
         );
 
         setHistoryVolume(newData);
-      } catch {
-        throw new Error("Failed in fetchHistoryVolume");
-      }
+      } catch {}
     },
     [fetchAllStrategies]
   );
 
+  const fetchAllTimeFees = useCallback(async () => {
+    try {
+      const response = await api.get(
+        `strategies/all-time-fees-and-rewards?env=${network}`
+      );
+
+      setAllTimeFees(Number(response.data.totalUsd));
+    } catch {}
+  }, []);
+
+  const fetchTvl = useCallback(async () => {
+    try {
+      const response = await api.get(`/strategies/tvl?env=${network}`);
+
+      setTvl(Number(response.data.tvl));
+    } catch {}
+  }, []);
+
+  const fetchVolume = useCallback(async () => {
+    try {
+      const volume = await api.get(
+        `/strategies/volume?env=${network}&status=LIVE`
+      );
+
+      const kaminoVol = volume.data.map(
+        (item: PoolAndKaminoVolumes) => item.kaminoVolume
+      );
+
+      const data: { [key: string]: Volume } = {};
+
+      kaminoVol.forEach((kaminoItem: Volume[]) => {
+        kaminoItem.forEach((item: Volume) => {
+          const period = item.period;
+          const convertVolToNumber = Number(item.amount);
+
+          if (!data[period]) {
+            data[period] = {
+              period: period,
+              amount: 0,
+            };
+          }
+
+          data[period].amount += convertVolToNumber;
+        });
+      });
+
+      setVolPerPeriod(data);
+    } catch {
+      throw new Error("Failed in fetchVolume");
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       historyVolume,
-      fetchHistoryVolume
+      allTimeFees,
+      tvl,
+      volPerPeriod,
+      fetchHistoryVolume,
+      fetchAllTimeFees,
+      fetchTvl,
+      fetchVolume,
     }),
-    [historyVolume, fetchHistoryVolume]
+    [
+      historyVolume,
+      allTimeFees,
+      tvl,
+      volPerPeriod,
+      fetchHistoryVolume,
+      fetchAllTimeFees,
+      fetchTvl,
+      fetchVolume,
+    ]
   );
 
   return (

@@ -25,14 +25,13 @@ export interface VolumeHistory {
   apy24h: string;
 }
 
+export interface VolPerPeriod {
+  [key: string]: Volume;
+}
+
 export interface VolumeHistoryChart {
   date: number;
   volume24hUsd: number;
-}
-
-export interface GeneralStats {
-  tvl: number;
-  allTimeFees: number;
 }
 
 export type TYPE_PERIOD = "24h" | "7d" | "30d";

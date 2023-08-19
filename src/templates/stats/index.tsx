@@ -1,9 +1,7 @@
 "use client";
 
 import CardBoxCustom from "@/components/card-box-custom";
-// import { keys, values } from "lodash";
 import React, { useEffect, useMemo, useState } from "react";
-// import formatLargeNumber from "@/utils/format-large-number";
 import CardBase from "@/components/card-base";
 import LineChart from "@/components/charts/line-chart";
 import ColumnChart from "@/components/charts/column-chart";
@@ -13,26 +11,30 @@ import Table from "@/components/table";
 import Link from "next/link";
 import { truncateWallet } from "@/utils/truncate";
 import formatLargeNumber from "@/utils/format-large-number";
-import {
-  GeneralStats,
-  TYPE_PERIOD,
-  Volume
-} from "@/types/strategies";
+import { TYPE_PERIOD } from "@/types/strategies";
 import { useStrategies } from "@/context/strategies";
 
-interface Props {
-  generalStats: GeneralStats;
-  volumePerPeriod: {
-    [key: string]: Volume;
-  };
-}
-
-const StatsTemplate: React.FC<Props> = ({ generalStats, volumePerPeriod }) => {
-  const { fetchHistoryVolume, historyVolume } = useStrategies();
+const StatsTemplate: React.FC = () => {
+  const {
+    allTimeFees,
+    tvl,
+    volPerPeriod,
+    historyVolume,
+    fetchHistoryVolume,
+    fetchAllTimeFees,
+    fetchTvl,
+    fetchVolume,
+  } = useStrategies();
   const [filterVaultUsed, setFilterVaultUsed] = useState("All");
   const [filterPools, setFilterPools] = useState("All");
   const [filterTransactions, setFilterTransactions] = useState("All");
   const [filterVolume, setFilterVolume] = useState("24h");
+
+  useEffect(() => {
+    fetchAllTimeFees();
+    fetchTvl();
+    fetchVolume();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchHistoryVolume(filterVolume as TYPE_PERIOD);
@@ -42,26 +44,26 @@ const StatsTemplate: React.FC<Props> = ({ generalStats, volumePerPeriod }) => {
     return [
       {
         title: "TVL",
-        value: "$" + formatLargeNumber(generalStats.tvl),
+        value: "$" + formatLargeNumber(tvl),
       },
       {
         title: "Volume 24H",
-        value: "$" + formatLargeNumber(volumePerPeriod["24h"].amount),
+        value: "$" + formatLargeNumber(volPerPeriod?.["24h"]?.amount),
       },
       {
         title: "Volume 7D",
-        value: "$" + formatLargeNumber(volumePerPeriod["7d"].amount),
+        value: "$" + formatLargeNumber(volPerPeriod?.["7d"].amount),
       },
       {
         title: "Total Fees",
-        value: "$" + formatLargeNumber(generalStats.allTimeFees),
+        value: "$" + formatLargeNumber(allTimeFees),
       },
       {
         title: "Total Users",
         value: "5.000",
       },
     ];
-  }, [generalStats.allTimeFees, generalStats.tvl, volumePerPeriod]);
+  }, [allTimeFees, tvl, volPerPeriod]);
 
   const chartDataVolume = useMemo(() => {
     const chart = historyVolume.map((item) => {
@@ -135,29 +137,29 @@ const StatsTemplate: React.FC<Props> = ({ generalStats, volumePerPeriod }) => {
         </div>
       </CardBoxCustom>
 
-      <div className="flex items-center mb-4 gap-x-[16px]">
+      {/* <div className="flex items-center mb-4 gap-x-[16px]">
         <CardBoxCustom className="w-1/2 h-[350px]" title="New Users">
           <div className="w-full h-full">
-            {/* <LineChart
+            <LineChart
               bg={"#151C2E"}
               series={chartDataVolume}
               height={250}
               colors={colorsLineUsers as any}
-            /> */}
+            />
           </div>
         </CardBoxCustom>
 
         <CardBoxCustom className="w-1/2 h-[350px]" title="Users">
           <div className="w-full h-full">
-            {/* <LineChart
+            <LineChart
               bg={"#151C2E"}
               series={chartDataVolume}
               height={250}
               colors={colorsLineNewUsers as any}
-            /> */}
+            />
           </div>
         </CardBoxCustom>
-      </div>
+      </div> */}
 
       <CardBoxCustom className="h-[426px] mb-4" title="Fees">
         <div className="w-full overflow-hidden">
