@@ -1,0 +1,20 @@
+{
+  "Log variable with useEffect": {
+    "scope": "javascript,typescript,javascriptreact,typescriptreact",
+    "prefix": "lue",
+    "body": ["React.useEffect(() => {", "  console.log({$0})", "}, [$0]);"],
+    "description": "Log variable with useEffect hook"
+  },
+  "Funciton Callback": {
+    "scope": "javascript,typescript,javascriptreact,typescriptreact",
+    "prefix": "call",
+    "body": ["const example = useCallback(() => {", " }, [])"],
+    "description": "create a callback function"
+  },
+  "Funciton Memo": {
+    "scope": "javascript,typescript,javascriptreact,typescriptreact",
+    "prefix": "memo",
+    "body": ["const example = useMemo(() => {", " }, [])"],
+    "description": "create a callback function"
+  }
+}

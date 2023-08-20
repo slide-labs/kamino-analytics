@@ -2,13 +2,14 @@
 
 import Filter from "@/components/filter";
 import formatLargeNumber from "@/utils/format-large-number";
+import { renderVaultName } from "@/utils/vaults";
 import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
 import React, { Fragment, useMemo } from "react";
 
 interface Props {
   disableMarker?: boolean;
-  series: any[];
+  data: any[];
   days?: string;
   colors?: string[];
   height?: number;
@@ -18,7 +19,7 @@ interface Props {
 }
 
 const ColumnChart: React.FC<Props> = ({
-  series,
+  data,
   disableMarker,
   days,
   height,
@@ -28,14 +29,7 @@ const ColumnChart: React.FC<Props> = ({
   colors = ["#49AFE9"],
 }) => {
   const formats = useMemo(
-    () => [
-      { title: "24H", value: "1" },
-      { title: "7D", value: "7" },
-      { title: "1M", value: "30" },
-      { title: "6M", value: "180" },
-      { title: "1Y", value: "365" },
-      { title: "All", value: "all" },
-    ],
+    () => [{ value: "24h" }, { value: "7d" }, { value: "30d" }],
     []
   );
 
@@ -96,14 +90,12 @@ const ColumnChart: React.FC<Props> = ({
         formatter: function (this: Highcharts.TooltipFormatterContextObject) {
           const { point } = this;
           if (point) {
-            const dataIndex = point.index;
-            // const lineData = series[dataIndex];
-
             return `
                 <div style="font-family" class="custom-tooltip">
-                  <span class="mt-4">• Vol 24h: $${formatLargeNumber(
-                    2
-                  )}</span>
+                ${renderVaultName(this.series.name)}
+                  <span class="mt-4">• Vol ${currentFilter}: $${formatLargeNumber(
+              point.y
+            )}</span>
                 </div>
               `;
           }
@@ -111,7 +103,7 @@ const ColumnChart: React.FC<Props> = ({
       },
       plotOptions: {
         column: {
-          pointPadding: 0,
+          pointPadding: 0.1,
           borderWidth: 0,
           groupPadding: 0.1,
           borderRadius: 1,
@@ -123,18 +115,14 @@ const ColumnChart: React.FC<Props> = ({
       credits: {
         enabled: false,
       },
-      series: [
-        {
-          name: "Tokyo",
-          data: [
-            49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1,
-            95.6, 54.4, 148.5, 216.4, 194.1, 95.6, 54.4, 194.1, 95.6, 54.4,
-          ],
-        },
-      ],
+      series: data,
     }),
-    [bg, colors, disableMarker, height]
+    [height, bg, disableMarker, colors, data, currentFilter]
   );
+
+  React.useEffect(() => {
+    console.log({ data });
+  }, [data]);
 
   return (
     <Fragment>

@@ -3,12 +3,15 @@
 import {
   PoolAndKaminoVolumes,
   TYPE_PERIOD,
+  VaultsVolumes,
   VolPerPeriod,
   Volume,
   VolumeHistoryChart,
+  VolumeWithStrategy,
 } from "@/types/strategies";
 import api from "@/utils/api-service";
 import { network } from "@/utils/constants";
+import { data } from "autoprefixer";
 import moment from "moment";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 
@@ -25,6 +28,7 @@ export type ContextValue = {
   fetchAllTimeFees: () => Promise<void>;
   fetchTvl: () => Promise<void>;
   fetchVolume: () => Promise<void>;
+  filterVolumeVaults: (period: string) => VaultsVolumes[] | undefined;
 };
 
 export const StrategiesContext = React.createContext<ContextValue | undefined>(
@@ -38,6 +42,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const [volPerPeriod, setVolPerPeriod] = useState<{
     [key: string]: Volume;
   }>();
+  const [vaultsVolume, setVaultsVolume] = useState<PoolAndKaminoVolumes[]>();
 
   const fetchAllStrategies = useCallback(async () => {
     try {
@@ -109,33 +114,62 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
         `/strategies/volume?env=${network}&status=LIVE`
       );
 
-      const kaminoVol = volume.data.map(
-        (item: PoolAndKaminoVolumes) => item.kaminoVolume
-      );
+      const dataPerPeriod: { [key: string]: Volume } = {};
+      const dataVaults: PoolAndKaminoVolumes[] = [];
 
-      const data: { [key: string]: Volume } = {};
+      volume.data.forEach((item: PoolAndKaminoVolumes) => {
+        const strategy = item.strategy;
 
-      kaminoVol.forEach((kaminoItem: Volume[]) => {
-        kaminoItem.forEach((item: Volume) => {
-          const period = item.period;
-          const convertVolToNumber = Number(item.amount);
+        item.kaminoVolume.forEach((kaminoItem: Volume) => {
+          const period = kaminoItem.period;
+          const convertVolToNumber = Number(kaminoItem.amount);
 
-          if (!data[period]) {
-            data[period] = {
+          if (!dataPerPeriod[period]) {
+            dataPerPeriod[period] = {
               period: period,
               amount: 0,
             };
           }
 
-          data[period].amount += convertVolToNumber;
+          dataPerPeriod[period].amount += convertVolToNumber;
+        });
+
+        dataVaults.push({
+          strategy,
+          kaminoVolume: item.kaminoVolume,
         });
       });
 
-      setVolPerPeriod(data);
+      setVaultsVolume(dataVaults);
+      setVolPerPeriod(dataPerPeriod);
     } catch {
       throw new Error("Failed in fetchVolume");
     }
   }, []);
+
+  const filterVolumeVaults = useCallback(
+    (period: string) => {
+      if (!vaultsVolume) return;
+
+      const newData: VaultsVolumes[] = [];
+
+      vaultsVolume.forEach((item: any) => {
+        const strategy = item.strategy;
+
+        const filter = item.kaminoVolume.filter(
+          (kaminoVol: Volume) => kaminoVol.period === period
+        )[0];
+
+        newData.push({
+          strategy,
+          kaminoVolume: filter,
+        });
+      });
+
+      return newData;
+    },
+    [vaultsVolume]
+  );
 
   const value = useMemo(
     () => ({
@@ -147,6 +181,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
+      filterVolumeVaults,
     }),
     [
       historyVolume,
@@ -157,6 +192,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
+      filterVolumeVaults,
     ]
   );
 
