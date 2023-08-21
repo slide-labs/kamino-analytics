@@ -1,4 +1,5 @@
 import { round } from "lodash";
+import { formatterNumber } from "@/utils/currency";
 
 const formatLargeNumber = (value: number | undefined, digits: number = 2) => {
   if (!value) return "0";
@@ -11,9 +12,9 @@ const formatLargeNumber = (value: number | undefined, digits: number = 2) => {
     return [
       round(value / BILLION, 3).toLocaleString(undefined, {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
       }),
-      "B"
+      "B",
     ].join("");
   }
 
@@ -21,9 +22,9 @@ const formatLargeNumber = (value: number | undefined, digits: number = 2) => {
     return [
       round(value / MILLION, 3).toLocaleString(undefined, {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
       }),
-      "M"
+      "M",
     ].join("");
   }
 
@@ -31,17 +32,21 @@ const formatLargeNumber = (value: number | undefined, digits: number = 2) => {
     return [
       round(value / THOUSAND, 3).toLocaleString(undefined, {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
       }),
-      "K"
+      "K",
     ].join("");
   }
 
   if (value >= 1) {
     return value.toLocaleString(undefined, {
       minimumFractionDigits: digits,
-      maximumFractionDigits: digits
+      maximumFractionDigits: digits,
     });
+  }
+
+  if (value < 1) {
+    return formatterNumber(value, true);
   }
 
   return value;

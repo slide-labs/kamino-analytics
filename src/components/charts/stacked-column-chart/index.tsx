@@ -1,45 +1,59 @@
 "use client";
 
+import Filter from "@/components/filter";
+import formatLargeNumber from "@/utils/format-large-number";
+import { renderVaultName } from "@/utils/vaults";
 import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
 import React, { Fragment, memo, useMemo } from "react";
-import classNames from "@/utils/class-name";
 
 interface Props {
-  isDateActive: boolean;
   disableMarker?: boolean;
-  series: any[];
-  minValue?: number;
-  maxValue?: number;
-  days?: string;
+  data: {
+    data: {
+      name: string;
+      data: number[];
+    }[];
+    strategy: string;
+  }[];
   onChangeDays?: (days: string) => void;
   colors?: {
     lineColor: string;
     stops: [number, string][];
   };
-  label?: string;
   height?: number;
   bg: string;
+  currentFilter?: string;
+  setCurrentFilter?: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const StackedColumnChart: React.FC<Props> = ({
-  isDateActive,
-  series,
+  data,
+  currentFilter,
+  setCurrentFilter,
   disableMarker,
-  days,
   height,
   bg,
-  onChangeDays
 }) => {
   const formats = useMemo(
-    () => [
-      { title: "24H", value: "1" },
-      { title: "7D", value: "7" },
-      { title: "14D", value: "14" },
-      { title: "30D", value: "30" },
-    ],
+    () => [{ value: "24h" }, { value: "7d" }, { value: "30d" }],
     []
   );
+
+  const series = useMemo(() => {
+    if (!data) return [];
+    let newData;
+
+    data.map(
+      (item) =>
+        (newData = item.data.map((k) => ({
+          name: k.name,
+          data: k.data,
+        })))
+    );
+
+    return newData;
+  }, [data]);
 
   const options = useMemo(() => {
     return {
@@ -55,28 +69,14 @@ const StackedColumnChart: React.FC<Props> = ({
         enabled: false,
       },
       xAxis: {
-        categories: [
-          "2021/22",
-          "2021/22",
-          "2021/22",
-          "2021/22",
-          "2021/22",
-          "2021/22",
-          "2021/22",
-          "2021/22",
-          "2021/22",
-          "2020/21",
-          "2019/20",
-          "2018/19",
-          "2017/18",
-        ],
         plotBands: [],
+        labels: {
+          enabled: false,
+        },
         gridLineColor: "transparent",
         lineColor: "transparent",
-        labels: {
-          style: { color: "#98B0C1", fontWeight: "600", fontSize: "12px" },
-          enabled: disableMarker ? false : true,
-        },
+        minorTickLength: 0,
+        tickLength: 0,
       },
       yAxis: {
         min: 0,
@@ -86,19 +86,51 @@ const StackedColumnChart: React.FC<Props> = ({
         labels: {
           style: { color: "#FFFFFF99", fontWeight: "400", fontSize: "12px" },
           enabled: disableMarker ? false : true,
-          format: '${text}'
+          format: "{text}%",
         },
-        tickAmount: 7,
+        tickAmount: 6,
         crosshair: true,
         gridLineDashStyle: "dash",
         gridLineColor: "#FFFFFF14",
       },
       tooltip: {
-        pointFormat:
-          '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+        useHTML: true,
         shared: true,
+        formatter: function (this: Highcharts.TooltipFormatterContextObject) {
+          const { points, key }: Highcharts.TooltipFormatterContextObject =
+            this;
+
+          if (points && key) {
+            let newData: ChartTooltip[] = [];
+            points.forEach((item: any) =>
+              newData.push({
+                name: item.series.name,
+                color: item.series.color,
+                value: item.point.y,
+              })
+            );
+
+            const html = `<div class="custom-tooltip !h-[auto] py-4 !w-[240px]">
+              <span class="uppercase mb-5">strategy: ${renderVaultName(
+                data[Number(key)].strategy
+              )}</span>
+             ${newData.map((item: any) => {
+               return `
+                   <div class="flex items-center mb-2 last-of-type:mb-0">
+                    <span class="mr-1" style="color: ${item.color}">${
+                 item.name
+               }:</span>
+                    <span>$${formatLargeNumber(item.value)}</span>
+                   </div>
+                 `;
+             })}
+           </div>`;
+
+            return html.trim().replaceAll(",", "");
+          }
+        },
       },
-      colors: ["#49AFE9", "#D65463", "#EE8945"],
+      colors: ["#49AFE9", "#D65463", "#EE8945", "#BB59FF"],
       plotOptions: {
         column: {
           stacking: "percent",
@@ -127,45 +159,34 @@ const StackedColumnChart: React.FC<Props> = ({
         align: "left",
         verticalAlign: "bottom",
       },
-      series: [
-        {
-          name: "Kevin De Bruyne",
-          data: [4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4],
-        },
-        {
-          name: "Joshua Kimmich",
-          data: [0, 4, 3, 2, 3, 4, 4, 2, 4, 4, 4],
-        },
-        {
-          name: "Sadio Mané",
-          data: [1, 2, 2, 1, 2, 0, 4, 3, 2, 3, 4],
-        },
-      ],
+      series: series,
     };
-  }, [bg, disableMarker, height]);
+  }, [height, bg, disableMarker, series, data]);
 
   return (
     <Fragment>
-      <HighchartsReact highcharts={Highcharts} options={options} />
-
-      {isDateActive && (
-        <div className="flex justify-end">
-          {formats.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => onChangeDays && onChangeDays(item.value)}
-              className={classNames(
-                "text-gray-400 border border-white text-xs px-4 py-1 rounded-full font-medium mr-3 hover:bg-gray-300 hover:bg-opacity-30",
-                item.value === days && "bg-gray-300 bg-opacity-30"
-              )}
-            >
-              {item.title}
-            </button>
-          ))}
+      {currentFilter && (
+        <div className="absolute right-3 top-6">
+          <Filter
+            data={formats}
+            currentValue={currentFilter}
+            setCurrentValue={setCurrentFilter}
+          />
         </div>
       )}
+      <HighchartsReact highcharts={Highcharts} options={options} />
     </Fragment>
   );
 };
 
 export default memo(StackedColumnChart);
+
+//
+// utils
+//
+
+interface ChartTooltip {
+  name: string;
+  color: string;
+  value: number;
+}

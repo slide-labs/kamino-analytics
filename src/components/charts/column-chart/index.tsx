@@ -47,21 +47,6 @@ const ColumnChart: React.FC<Props> = ({
         text: "",
       },
       xAxis: {
-        categories: [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ],
-        crosshair: true,
         labels: {
           enabled: false,
         },
@@ -105,7 +90,7 @@ const ColumnChart: React.FC<Props> = ({
         column: {
           pointPadding: 0.1,
           borderWidth: 0,
-          groupPadding: 0.1,
+          groupPadding: 0,
           borderRadius: 1,
         },
       },
@@ -119,10 +104,6 @@ const ColumnChart: React.FC<Props> = ({
     }),
     [height, bg, disableMarker, colors, data, currentFilter]
   );
-
-  React.useEffect(() => {
-    console.log({ data });
-  }, [data]);
 
   return (
     <Fragment>

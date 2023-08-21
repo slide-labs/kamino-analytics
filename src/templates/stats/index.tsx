@@ -20,16 +20,19 @@ const StatsTemplate: React.FC = () => {
     tvl,
     volPerPeriod,
     historyVolume,
+    feesAndRewards,
     fetchHistoryVolume,
     fetchAllTimeFees,
     fetchTvl,
     fetchVolume,
     filterVolumeVaults,
+    fetchFeesAndRewards,
   } = useStrategies();
   const [filterVaultUsed, setFilterVaultUsed] = useState("24h");
   const [filterPools, setFilterPools] = useState("All");
   const [filterTransactions, setFilterTransactions] = useState("All");
   const [filterVolume, setFilterVolume] = useState("24h");
+  const [filterFeeAndRewards, setFilterFeeAndRewards] = useState("24h");
 
   useEffect(() => {
     fetchAllTimeFees();
@@ -40,6 +43,10 @@ const StatsTemplate: React.FC = () => {
   useEffect(() => {
     fetchHistoryVolume(filterVolume as TYPE_PERIOD);
   }, [filterVolume]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    fetchFeesAndRewards(filterFeeAndRewards as TYPE_PERIOD);
+  }, [filterFeeAndRewards]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const generalStatsBlock = useMemo(() => {
     return [
@@ -78,7 +85,7 @@ const StatsTemplate: React.FC = () => {
   }, [historyVolume]);
 
   const chartVaultsVolume = useMemo(() => {
-    const history = filterVolumeVaults(filterVaultUsed);
+    const history = filterVolumeVaults(filterVaultUsed as TYPE_PERIOD);
 
     const chart = history?.map((item) => {
       return {
@@ -89,6 +96,46 @@ const StatsTemplate: React.FC = () => {
 
     return chart;
   }, [filterVaultUsed, filterVolumeVaults]);
+
+  const chartFeesAndRewards = useMemo(() => {
+    if (!feesAndRewards) return [];
+
+    const data: { name: string; data: number[] }[] = [
+      {
+        name: "Total USD",
+        data: [],
+      },
+      {
+        name: "Fee Earned",
+        data: [],
+      },
+      {
+        name: "Kamino Rewards",
+        data: [],
+      },
+      {
+        name: "Rewards Earned",
+        data: [],
+      },
+    ];
+
+    const strategies: string[] = [];
+
+    feesAndRewards.forEach((item) => {
+      data[0].data.push(item.totalUsd);
+      data[1].data.push(item.feesEarnedUsd);
+      data[2].data.push(item.kaminoRewards);
+      data[3].data.push(item.rewardsEarnedUsd);
+      strategies.push(item.strategy);
+    });
+
+    const newDataGroup = strategies.map((strategy) => ({
+      data: data,
+      strategy: strategy,
+    }));
+
+    return newDataGroup;
+  }, [feesAndRewards]);
 
   const data = useMemo(() => {
     return [
@@ -175,13 +222,14 @@ const StatsTemplate: React.FC = () => {
         </CardBoxCustom>
       </div> */}
 
-      <CardBoxCustom className="h-[426px] mb-4" title="Fees">
+      <CardBoxCustom className="h-[426px] mb-4" title="Fees and Rewards">
         <div className="w-full overflow-hidden">
           <StackedColumnChart
             bg={"#151C2E"}
             height={340}
-            isDateActive={false}
-            series={[]}
+            currentFilter={filterFeeAndRewards}
+            setCurrentFilter={setFilterFeeAndRewards}
+            data={chartFeesAndRewards}
           />
         </div>
       </CardBoxCustom>

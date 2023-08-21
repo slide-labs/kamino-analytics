@@ -44,6 +44,36 @@ export interface VolumeHistoryChart {
   volume24hUsd: number;
 }
 
+export interface FeesAndRewards {
+  strategyPubkey: string;
+  feesAEarned: string;
+  feesBEarned: string;
+  rewards0Earned: string;
+  rewards1Earned: string;
+  rewards2Earned: string;
+  kaminoRewards0Earned: string;
+  kaminoRewards1Earned: string;
+  kaminoRewards2Earned: string;
+  feesAEarnedUsd: string;
+  feesBEarnedUsd: string;
+  rewards0EarnedUsd: string;
+  rewards1EarnedUsd: string;
+  rewards2EarnedUsd: string;
+  kaminoRewards0EarnedUsd: string;
+  kaminoRewards1EarnedUsd: string;
+  kaminoRewards2EarnedUsd: string;
+  totalUsd: string;
+  lastCalculated: string;
+}
+
+export interface FeesAndRewardsChart {
+  strategy: string;
+  feesEarnedUsd: number;
+  rewardsEarnedUsd: number;
+  kaminoRewards: number;
+  totalUsd: number;
+}
+
 export type TYPE_PERIOD = "24h" | "7d" | "30d";
 
 export type TYPE_STRATEGY = "NON_PEGGED" | "PEGGED";

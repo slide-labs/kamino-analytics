@@ -1,17 +1,17 @@
 "use client";
 
 import {
+  FeesAndRewards,
+  FeesAndRewardsChart,
   PoolAndKaminoVolumes,
   TYPE_PERIOD,
   VaultsVolumes,
   VolPerPeriod,
   Volume,
   VolumeHistoryChart,
-  VolumeWithStrategy,
 } from "@/types/strategies";
 import api from "@/utils/api-service";
 import { network } from "@/utils/constants";
-import { data } from "autoprefixer";
 import moment from "moment";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 
@@ -24,11 +24,13 @@ export type ContextValue = {
   allTimeFees: number;
   tvl: number;
   volPerPeriod: VolPerPeriod | undefined;
+  feesAndRewards: FeesAndRewardsChart[];
   fetchHistoryVolume: (period: TYPE_PERIOD) => Promise<void>;
   fetchAllTimeFees: () => Promise<void>;
   fetchTvl: () => Promise<void>;
   fetchVolume: () => Promise<void>;
-  filterVolumeVaults: (period: string) => VaultsVolumes[] | undefined;
+  filterVolumeVaults: (period: TYPE_PERIOD) => VaultsVolumes[] | undefined;
+  fetchFeesAndRewards: (period: TYPE_PERIOD) => Promise<void>;
 };
 
 export const StrategiesContext = React.createContext<ContextValue | undefined>(
@@ -42,7 +44,10 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const [volPerPeriod, setVolPerPeriod] = useState<{
     [key: string]: Volume;
   }>();
-  const [vaultsVolume, setVaultsVolume] = useState<PoolAndKaminoVolumes[]>();
+  const [vaultsVolume, setVaultsVolume] = useState<PoolAndKaminoVolumes[]>([]);
+  const [feesAndRewards, setFeesAndRewards] = useState<FeesAndRewardsChart[]>(
+    []
+  );
 
   const fetchAllStrategies = useCallback(async () => {
     try {
@@ -148,7 +153,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   }, []);
 
   const filterVolumeVaults = useCallback(
-    (period: string) => {
+    (period: TYPE_PERIOD) => {
       if (!vaultsVolume) return;
 
       const newData: VaultsVolumes[] = [];
@@ -166,10 +171,57 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
         });
       });
 
-      return newData;
+      newData.sort((a, b) => {
+        const volA = Number(a.kaminoVolume.amount);
+        const volB = Number(b.kaminoVolume.amount);
+
+        if (volA > volB) {
+          return -1;
+        } else if (volA < volB) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
+      return newData.slice(0, 10);
     },
     [vaultsVolume]
   );
+
+  const fetchFeesAndRewards = useCallback(async (period: TYPE_PERIOD) => {
+    try {
+      let newData: FeesAndRewardsChart[] = [];
+
+      const response = await api.get(
+        `/strategies/fees-and-rewards?status=LIVE&period=${period}`
+      );
+      const result: FeesAndRewards[] = response.data;
+
+      result.forEach((item: FeesAndRewards) => {
+        const calcFees =
+          Number(item.feesAEarnedUsd) + Number(item.feesBEarnedUsd);
+        const calcRewards =
+          Number(item.rewards0EarnedUsd) +
+          Number(item.rewards1EarnedUsd) +
+          Number(item.rewards2EarnedUsd);
+        const calcKaminoRewards =
+          Number(item.kaminoRewards0EarnedUsd) +
+          Number(item.kaminoRewards1EarnedUsd) +
+          Number(item.kaminoRewards2EarnedUsd);
+
+        newData.push({
+          strategy: item.strategyPubkey,
+          feesEarnedUsd: calcFees,
+          rewardsEarnedUsd: calcRewards,
+          kaminoRewards: calcKaminoRewards,
+          totalUsd: Number(item.totalUsd),
+        });
+      });
+
+      setFeesAndRewards(newData);
+    } catch {}
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -177,22 +229,26 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       allTimeFees,
       tvl,
       volPerPeriod,
+      feesAndRewards,
       fetchHistoryVolume,
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
       filterVolumeVaults,
+      fetchFeesAndRewards,
     }),
     [
       historyVolume,
       allTimeFees,
       tvl,
       volPerPeriod,
+      feesAndRewards,
       fetchHistoryVolume,
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
       filterVolumeVaults,
+      fetchFeesAndRewards,
     ]
   );
 
