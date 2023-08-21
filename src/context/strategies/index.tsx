@@ -164,8 +164,6 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       try {
         if (loadingTransactions) return;
 
-        console.log("load more");
-
         setLoadingTransactions(true);
 
         const data: KaminoTransaction[] = [];
