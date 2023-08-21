@@ -4,20 +4,14 @@ import {
   KaminoTransaction,
   PoolAndKaminoVolumes,
   TYPE_PERIOD,
+  VaultsVolumes,
   VolPerPeriod,
   Volume,
   VolumeHistoryChart,
 } from "@/types/strategies";
 import api from "@/utils/api-service";
 import { network, provider } from "@/utils/constants";
-import {
-  Idl,
-  Program,
-  AnchorProvider,
-  BorshInstructionCoder,
-  BorshAccountsCoder,
-} from "@project-serum/anchor";
-import * as borsh from "@project-serum/borsh";
+import { Idl, Program, BorshInstructionCoder } from "@project-serum/anchor";
 import moment from "moment";
 import React, {
   useCallback,
@@ -29,11 +23,7 @@ import React, {
 import { useSolana } from "../solana";
 import { getConfigByCluster } from "@hubbleprotocol/hubble-config";
 import { KAMINO_IDL } from "@hubbleprotocol/hubble-idl";
-import {
-  Keypair,
-  PartiallyDecodedInstruction,
-  Transaction,
-} from "@solana/web3.js";
+import { PartiallyDecodedInstruction } from "@solana/web3.js";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
 interface Props {
@@ -49,6 +39,7 @@ export type ContextValue = {
   fetchAllTimeFees: () => Promise<void>;
   fetchTvl: () => Promise<void>;
   fetchVolume: () => Promise<void>;
+  filterVolumeVaults: (period: string) => VaultsVolumes[] | undefined;
 };
 
 export const StrategiesContext = React.createContext<ContextValue | undefined>(
@@ -66,6 +57,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const [allTransactions, setAllTransactions] = useState<KaminoTransaction[]>(
     []
   );
+  const [vaultsVolume, setVaultsVolume] = useState<PoolAndKaminoVolumes[]>();
 
   const fetchAllStrategies = useCallback(async () => {
     try {
@@ -137,29 +129,34 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
         `/strategies/volume?env=${network}&status=LIVE`
       );
 
-      const kaminoVol = volume.data.map(
-        (item: PoolAndKaminoVolumes) => item.kaminoVolume
-      );
+      const dataPerPeriod: { [key: string]: Volume } = {};
+      const dataVaults: PoolAndKaminoVolumes[] = [];
 
-      const data: { [key: string]: Volume } = {};
+      volume.data.forEach((item: PoolAndKaminoVolumes) => {
+        const strategy = item.strategy;
 
-      kaminoVol.forEach((kaminoItem: Volume[]) => {
-        kaminoItem.forEach((item: Volume) => {
-          const period = item.period;
-          const convertVolToNumber = Number(item.amount);
+        item.kaminoVolume.forEach((kaminoItem: Volume) => {
+          const period = kaminoItem.period;
+          const convertVolToNumber = Number(kaminoItem.amount);
 
-          if (!data[period]) {
-            data[period] = {
+          if (!dataPerPeriod[period]) {
+            dataPerPeriod[period] = {
               period: period,
               amount: 0,
             };
           }
 
-          data[period].amount += convertVolToNumber;
+          dataPerPeriod[period].amount += convertVolToNumber;
+        });
+
+        dataVaults.push({
+          strategy,
+          kaminoVolume: item.kaminoVolume,
         });
       });
 
-      setVolPerPeriod(data);
+      setVaultsVolume(dataVaults);
+      setVolPerPeriod(dataPerPeriod);
     } catch {
       throw new Error("Failed in fetchVolume");
     }
@@ -245,6 +242,30 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
     fetchTransactions();
   }, []);
 
+  const filterVolumeVaults = useCallback(
+    (period: string) => {
+      if (!vaultsVolume) return;
+
+      const newData: VaultsVolumes[] = [];
+
+      vaultsVolume.forEach((item: any) => {
+        const strategy = item.strategy;
+
+        const filter = item.kaminoVolume.filter(
+          (kaminoVol: Volume) => kaminoVol.period === period
+        )[0];
+
+        newData.push({
+          strategy,
+          kaminoVolume: filter,
+        });
+      });
+
+      return newData;
+    },
+    [vaultsVolume]
+  );
+
   const value = useMemo(
     () => ({
       historyVolume,
@@ -255,6 +276,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
+      filterVolumeVaults,
     }),
     [
       historyVolume,
@@ -265,6 +287,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
+      filterVolumeVaults,
     ]
   );
 

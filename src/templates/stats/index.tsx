@@ -24,8 +24,9 @@ const StatsTemplate: React.FC = () => {
     fetchAllTimeFees,
     fetchTvl,
     fetchVolume,
+    filterVolumeVaults,
   } = useStrategies();
-  const [filterVaultUsed, setFilterVaultUsed] = useState("All");
+  const [filterVaultUsed, setFilterVaultUsed] = useState("24h");
   const [filterPools, setFilterPools] = useState("All");
   const [filterTransactions, setFilterTransactions] = useState("All");
   const [filterVolume, setFilterVolume] = useState("24h");
@@ -75,6 +76,19 @@ const StatsTemplate: React.FC = () => {
 
     return chart;
   }, [historyVolume]);
+
+  const chartVaultsVolume = useMemo(() => {
+    const history = filterVolumeVaults(filterVaultUsed);
+
+    const chart = history?.map((item) => {
+      return {
+        name: item.strategy,
+        data: [Number(item.kaminoVolume?.amount || 0)],
+      };
+    });
+
+    return chart;
+  }, [filterVaultUsed, filterVolumeVaults]);
 
   const data = useMemo(() => {
     return [
@@ -179,7 +193,7 @@ const StatsTemplate: React.FC = () => {
             height={261}
             currentFilter={filterVaultUsed}
             setCurrentFilter={setFilterVaultUsed}
-            series={[]}
+            data={chartVaultsVolume || []}
             colors={["#8CE8BF"]}
           />
         </div>
@@ -192,7 +206,7 @@ const StatsTemplate: React.FC = () => {
             height={261}
             currentFilter={filterPools}
             setCurrentFilter={setFilterPools}
-            series={[]}
+            data={[]}
             colors={["#49AFE9"]}
           />
         </div>

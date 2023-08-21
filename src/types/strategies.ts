@@ -18,7 +18,13 @@ export interface KaminoTransaction {
 
 export interface PoolAndKaminoVolumes {
   kaminoVolume: Volume[];
-  poolVolume: Volume[];
+  poolVolume?: Volume[];
+  strategy: string;
+}
+
+export interface VaultsVolumes {
+  kaminoVolume: Volume;
+  strategy: string;
 }
 
 export interface Volume {
@@ -36,6 +42,10 @@ export interface VolumeHistory {
 
 export interface VolPerPeriod {
   [key: string]: Volume;
+}
+
+export interface VolumeWithStrategy extends Volume {
+  strategy: string;
 }
 
 export interface VolumeHistoryChart {
