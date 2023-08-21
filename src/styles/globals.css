@@ -8,6 +8,7 @@
 body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  background: #091326;
 }
 
 * {

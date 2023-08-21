@@ -7,6 +7,14 @@ export interface Strategie {
   tokenBMint: string;
 }
 
+export interface KaminoTransaction {
+  transactionType: string;
+  tx: string;
+  vaultName: string;
+  vaultAddress: string;
+  timestamp: number;
+}
+
 export interface PoolAndKaminoVolumes {
   kaminoVolume: Volume[];
   poolVolume?: Volume[];

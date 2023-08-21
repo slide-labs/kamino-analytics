@@ -3,6 +3,7 @@
 import {
   FeesAndRewards,
   FeesAndRewardsChart,
+  KaminoTransaction,
   PoolAndKaminoVolumes,
   TYPE_PERIOD,
   VaultsVolumes,
@@ -11,9 +12,15 @@ import {
   VolumeHistoryChart,
 } from "@/types/strategies";
 import api from "@/utils/api-service";
-import { network } from "@/utils/constants";
+import { network, provider } from "@/utils/constants";
+import { Idl, Program, BorshInstructionCoder } from "@project-serum/anchor";
 import moment from "moment";
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import { getConfigByCluster } from "@hubbleprotocol/hubble-config";
+import { KAMINO_IDL } from "@hubbleprotocol/hubble-idl";
+import { PartiallyDecodedInstruction } from "@solana/web3.js";
+import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { renderVaultName } from "@/utils/vaults";
 
 interface Props {
   children: JSX.Element;
@@ -31,6 +38,8 @@ export type ContextValue = {
   fetchVolume: () => Promise<void>;
   filterVolumeVaults: (period: TYPE_PERIOD) => VaultsVolumes[] | undefined;
   fetchFeesAndRewards: (period: TYPE_PERIOD) => Promise<void>;
+  allTransactions: KaminoTransaction[];
+  fetchTransactions: (lastSignature?: string) => Promise<void>;
 };
 
 export const StrategiesContext = React.createContext<ContextValue | undefined>(
@@ -48,6 +57,11 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const [feesAndRewards, setFeesAndRewards] = useState<FeesAndRewardsChart[]>(
     []
   );
+  const [allTransactions, setAllTransactions] = useState<KaminoTransaction[]>(
+    []
+  );
+  const [loadingTransactions, setLoadingTransactions] =
+    useState<boolean>(false);
 
   const fetchAllStrategies = useCallback(async () => {
     try {
@@ -152,6 +166,88 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
     }
   }, []);
 
+  const fetchTransactions = useCallback(
+    async (lastSignature?: string) => {
+      try {
+        if (loadingTransactions) return;
+
+        setLoadingTransactions(true);
+
+        const data: KaminoTransaction[] = [];
+        const coder = new BorshInstructionCoder(KAMINO_IDL as Idl);
+        const program = new Program(
+          KAMINO_IDL as Idl,
+          KAMINO_PROGRAM_ID,
+          provider
+        );
+
+        const confirmedSignatures =
+          await program.provider.connection.getConfirmedSignaturesForAddress2(
+            program.programId,
+            {
+              limit: 200,
+              before: lastSignature,
+            }
+          );
+
+        const transactions =
+          await program.provider.connection.getParsedTransactions(
+            confirmedSignatures.map((item) => item.signature),
+            {
+              maxSupportedTransactionVersion: 0,
+            }
+          );
+
+        transactions.forEach((item) => {
+          if (!item) return;
+
+          item.transaction.message.instructions.forEach((i) => {
+            const instruction = i as PartiallyDecodedInstruction;
+
+            if (
+              instruction.programId.toBase58() !== KAMINO_PROGRAM_ID.toBase58()
+            )
+              return;
+
+            const decodedBs58Instruction = coder.decode(
+              Buffer.from(bs58.decode(instruction.data))
+            );
+
+            if (
+              !decodedBs58Instruction ||
+              (decodedBs58Instruction.name !== "invest" &&
+                decodedBs58Instruction.name !== "depositAndInvest" &&
+                decodedBs58Instruction.name !== "deposit" &&
+                decodedBs58Instruction.name !== "withdraw")
+            )
+              return;
+
+            const accounts = KAMINO_IDL.instructions.find(
+              (idlInstruction) =>
+                idlInstruction.name === decodedBs58Instruction.name
+            )?.accounts;
+
+            if (!accounts) return;
+
+            data.push({
+              transactionType: decodedBs58Instruction.name,
+              tx: item.transaction.signatures[0],
+              vaultName: renderVaultName(instruction.accounts[1].toBase58()),
+              vaultAddress: instruction.accounts[1].toBase58(),
+              timestamp: item.blockTime || 0,
+            });
+          });
+        });
+
+        setAllTransactions((prev) => [...prev, ...data]);
+      } catch {
+      } finally {
+        setLoadingTransactions(false);
+      }
+    },
+    [loadingTransactions]
+  );
+
   const filterVolumeVaults = useCallback(
     (period: TYPE_PERIOD) => {
       if (!vaultsVolume) return;
@@ -230,12 +326,14 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       tvl,
       volPerPeriod,
       feesAndRewards,
+      allTransactions,
       fetchHistoryVolume,
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
       filterVolumeVaults,
       fetchFeesAndRewards,
+      fetchTransactions,
     }),
     [
       historyVolume,
@@ -243,12 +341,14 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       tvl,
       volPerPeriod,
       feesAndRewards,
+      allTransactions,
       fetchHistoryVolume,
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
       filterVolumeVaults,
       fetchFeesAndRewards,
+      fetchTransactions,
     ]
   );
 
@@ -278,3 +378,6 @@ export interface CryptoSelect {
   name: string;
   token: string;
 }
+
+const { kamino } = getConfigByCluster("mainnet-beta");
+const KAMINO_PROGRAM_ID = kamino.programId;

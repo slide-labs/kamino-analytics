@@ -1,6 +1,7 @@
 "use client";
 
 import HELIUS_API from "@/utils/helius";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -59,7 +60,10 @@ export const SolanaProvider: React.FC<Props> = ({ children, ...rest }) => {
       new LedgerWalletAdapter(),
       new BraveWalletAdapter(),
       new NightlyWalletAdapter(),
-      new WalletConnectWalletAdapter("mainnet-beta" as any),
+      new WalletConnectWalletAdapter({
+        network: WalletAdapterNetwork.Mainnet,
+        options: {},
+      }),
       new GlowWalletAdapter(),
       new SolletWalletAdapter(),
       new Coin98WalletAdapter(),
