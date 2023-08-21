@@ -8,9 +8,8 @@ export interface Strategie {
 }
 
 export interface KaminoTransaction {
-  type: string;
-  tokenAAmount: number;
-  tokenBAmount: number;
+  transactionType: string;
+  tx: string;
   vaultName: string;
   vaultAddress: string;
   timestamp: number;

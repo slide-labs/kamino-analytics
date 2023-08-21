@@ -1,6 +1,4 @@
-const strategies: {
-  [key: string]: string;
-} = {
+const strategies: Record<string, string> = {
   BfyQYYr2T9eJfMfq5gPXcq3SUkJSh2ahtk7ZNUCzkx9e: "UXD-USDC",
   CEz5keL9hBCUbtVbmcwenthRMwmZLupxJ6YtYAgzp4ex: "RAYDIUM_SOL_USDC",
   "8oZVstz1YaEdgu5yc9Bi7bi2ACT2sEfgG3ofZ8ZresC4": "JITOSOL_BSOL",
@@ -47,9 +45,10 @@ const strategies: {
 
 export const renderVaultName = (strategy: string) => {
   const associatedStrategy = strategies[strategy];
+
   if (associatedStrategy) {
     return associatedStrategy;
-  } else {
-    return "";
   }
+
+  return "";
 };

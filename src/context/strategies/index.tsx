@@ -13,18 +13,12 @@ import api from "@/utils/api-service";
 import { network, provider } from "@/utils/constants";
 import { Idl, Program, BorshInstructionCoder } from "@project-serum/anchor";
 import moment from "moment";
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { useSolana } from "../solana";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { getConfigByCluster } from "@hubbleprotocol/hubble-config";
 import { KAMINO_IDL } from "@hubbleprotocol/hubble-idl";
 import { PartiallyDecodedInstruction } from "@solana/web3.js";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { renderVaultName } from "@/utils/vaults";
 
 interface Props {
   children: JSX.Element;
@@ -40,6 +34,8 @@ export type ContextValue = {
   fetchTvl: () => Promise<void>;
   fetchVolume: () => Promise<void>;
   filterVolumeVaults: (period: string) => VaultsVolumes[] | undefined;
+  allTransactions: KaminoTransaction[];
+  fetchTransactions: (lastSignature?: string) => Promise<void>;
 };
 
 export const StrategiesContext = React.createContext<ContextValue | undefined>(
@@ -53,10 +49,11 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const [volPerPeriod, setVolPerPeriod] = useState<{
     [key: string]: Volume;
   }>();
-  const { connection } = useSolana();
   const [allTransactions, setAllTransactions] = useState<KaminoTransaction[]>(
     []
   );
+  const [loadingTransactions, setLoadingTransactions] =
+    useState<boolean>(false);
   const [vaultsVolume, setVaultsVolume] = useState<PoolAndKaminoVolumes[]>();
 
   const fetchAllStrategies = useCallback(async () => {
@@ -162,85 +159,89 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
     }
   }, []);
 
-  const fetchTransactions = useCallback(async () => {
-    try {
-      const data: KaminoTransaction[] = [];
-      const coder = new BorshInstructionCoder(KAMINO_IDL as Idl);
-      const program = new Program(
-        KAMINO_IDL as Idl,
-        KAMINO_PROGRAM_ID,
-        provider
-      );
+  const fetchTransactions = useCallback(
+    async (lastSignature?: string) => {
+      try {
+        if (loadingTransactions) return;
 
-      const confirmedSignatures =
-        await program.provider.connection.getConfirmedSignaturesForAddress2(
-          program.programId,
-          {
-            limit: 10,
-          }
+        console.log("load more");
+
+        setLoadingTransactions(true);
+
+        const data: KaminoTransaction[] = [];
+        const coder = new BorshInstructionCoder(KAMINO_IDL as Idl);
+        const program = new Program(
+          KAMINO_IDL as Idl,
+          KAMINO_PROGRAM_ID,
+          provider
         );
 
-      const transactions =
-        await program.provider.connection.getParsedTransactions(
-          confirmedSignatures.map((item) => item.signature),
-          {
-            maxSupportedTransactionVersion: 0,
-          }
-        );
-
-      transactions.forEach((item) => {
-        if (!item) return;
-
-        item.transaction.message.instructions.forEach((i) => {
-          const instruction = i as PartiallyDecodedInstruction;
-
-          if (instruction.programId.toBase58() !== KAMINO_PROGRAM_ID.toBase58())
-            return;
-
-          const decodedBs58Instruction = coder.decode(
-            Buffer.from(bs58.decode(instruction.data))
+        const confirmedSignatures =
+          await program.provider.connection.getConfirmedSignaturesForAddress2(
+            program.programId,
+            {
+              limit: 200,
+              before: lastSignature,
+            }
           );
 
-          if (
-            !decodedBs58Instruction ||
-            (decodedBs58Instruction.name !== "invest" &&
-              decodedBs58Instruction.name !== "depositAndInvest" &&
-              decodedBs58Instruction.name !== "deposit" &&
-              decodedBs58Instruction.name !== "withdraw")
-          )
-            return;
+        const transactions =
+          await program.provider.connection.getParsedTransactions(
+            confirmedSignatures.map((item) => item.signature),
+            {
+              maxSupportedTransactionVersion: 0,
+            }
+          );
 
-          const accounts = KAMINO_IDL.instructions.find(
-            (idlInstruction) =>
-              idlInstruction.name === decodedBs58Instruction.name
-          )?.accounts;
+        transactions.forEach((item) => {
+          if (!item) return;
 
-          if (!accounts) return;
+          item.transaction.message.instructions.forEach((i) => {
+            const instruction = i as PartiallyDecodedInstruction;
 
-          data.push({
-            type: decodedBs58Instruction.name,
-            tokenAAmount: 0,
-            tokenBAmount: 0,
-            vaultName: "",
-            vaultAddress: "",
-            timestamp: 0,
-          });
+            if (
+              instruction.programId.toBase58() !== KAMINO_PROGRAM_ID.toBase58()
+            )
+              return;
 
-          instruction.accounts.forEach((account, index) => {
-            console.log(account.toBase58());
-            console.log(accounts[index]);
-            console.log("-----");
+            const decodedBs58Instruction = coder.decode(
+              Buffer.from(bs58.decode(instruction.data))
+            );
+
+            if (
+              !decodedBs58Instruction ||
+              (decodedBs58Instruction.name !== "invest" &&
+                decodedBs58Instruction.name !== "depositAndInvest" &&
+                decodedBs58Instruction.name !== "deposit" &&
+                decodedBs58Instruction.name !== "withdraw")
+            )
+              return;
+
+            const accounts = KAMINO_IDL.instructions.find(
+              (idlInstruction) =>
+                idlInstruction.name === decodedBs58Instruction.name
+            )?.accounts;
+
+            if (!accounts) return;
+
+            data.push({
+              transactionType: decodedBs58Instruction.name,
+              tx: item.transaction.signatures[0],
+              vaultName: renderVaultName(instruction.accounts[1].toBase58()),
+              vaultAddress: instruction.accounts[1].toBase58(),
+              timestamp: item.blockTime || 0,
+            });
           });
         });
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
+        setAllTransactions((prev) => [...prev, ...data]);
+      } catch {
+      } finally {
+        setLoadingTransactions(false);
+      }
+    },
+    [loadingTransactions]
+  );
 
   const filterVolumeVaults = useCallback(
     (period: string) => {
@@ -272,13 +273,16 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       allTimeFees,
       tvl,
       volPerPeriod,
+      allTransactions,
       fetchHistoryVolume,
       fetchAllTimeFees,
       fetchTvl,
       fetchVolume,
       filterVolumeVaults,
+      fetchTransactions,
     }),
     [
+      allTransactions,
       historyVolume,
       allTimeFees,
       tvl,
@@ -288,6 +292,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       fetchTvl,
       fetchVolume,
       filterVolumeVaults,
+      fetchTransactions,
     ]
   );
 

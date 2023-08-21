@@ -1,18 +1,20 @@
 "use client";
 
 import CardBoxCustom from "@/components/card-box-custom";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import CardBase from "@/components/card-base";
 import LineChart from "@/components/charts/line-chart";
 import ColumnChart from "@/components/charts/column-chart";
 import StackedColumnChart from "@/components/charts/stacked-column-chart";
-import Filter from "@/components/filter";
+// import Filter from "@/components/filter";
 import Table from "@/components/table";
 import Link from "next/link";
 import { truncateWallet } from "@/utils/truncate";
 import formatLargeNumber from "@/utils/format-large-number";
 import { TYPE_PERIOD } from "@/types/strategies";
 import { useStrategies } from "@/context/strategies";
+import moment from "moment";
+import { useDebouncedCallback } from "use-debounce";
 
 const StatsTemplate: React.FC = () => {
   const {
@@ -20,16 +22,41 @@ const StatsTemplate: React.FC = () => {
     tvl,
     volPerPeriod,
     historyVolume,
+    allTransactions,
     fetchHistoryVolume,
     fetchAllTimeFees,
     fetchTvl,
     fetchVolume,
     filterVolumeVaults,
+    fetchTransactions,
   } = useStrategies();
   const [filterVaultUsed, setFilterVaultUsed] = useState("24h");
   const [filterPools, setFilterPools] = useState("All");
   const [filterTransactions, setFilterTransactions] = useState("All");
   const [filterVolume, setFilterVolume] = useState("24h");
+
+  useEffect(() => {
+    fetchTransactions();
+
+    window.addEventListener("scroll", debounced);
+
+    return () => {
+      window.removeEventListener("scroll", debounced);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const debounced = useDebouncedCallback((value) => {
+    loadMore();
+  }, 1000);
+
+  const loadMore = useCallback(() => {
+    if (
+      window.innerHeight + window.scrollY >=
+      document.body.offsetHeight - 100
+    ) {
+      fetchTransactions(allTransactions[allTransactions.length - 1]?.tx);
+    }
+  }, [allTransactions, fetchTransactions]);
 
   useEffect(() => {
     fetchAllTimeFees();
@@ -90,44 +117,34 @@ const StatsTemplate: React.FC = () => {
     return chart;
   }, [filterVaultUsed, filterVolumeVaults]);
 
-  const data = useMemo(() => {
-    return [
-      {
-        token: (
-          <Link href={`/blockchain/transactions/`} passHref>
-            <span className="text-purple-300 font-medium mr-1 cursor-pointer hover:underline">
-              s
-            </span>
+  const data = useMemo(
+    () =>
+      allTransactions.map((item) => ({
+        transactionType: (
+          <Link
+            target="_blank"
+            className="hover:opacity-50 hover:underline text-purple-300 font-medium mr-1 uppercase"
+            href={`https://solscan.io/tx/${item.tx}`}
+            passHref
+          >
+            {item.transactionType}
           </Link>
         ),
-        vault: "SOL-USDC",
-        amount: `${formatLargeNumber(100000)} USDC`,
-        account: (
-          <span className="text-kamino-blue-light">
-            {truncateWallet("8dq7DkQY3EC1tpVxUkeFcH8wZtUWMRrh3KNr4wGdSCFa", 10)}
-          </span>
-        ),
-        time: "10 days ago",
-      },
-      {
-        token: (
-          <Link href={`/blockchain/transactions/`} passHref>
-            <span className="text-purple-300 font-medium mr-1 cursor-pointer hover:underline">
-              s
-            </span>
+        vault: item.vaultName || "-",
+        strategy: (
+          <Link
+            target="_blank"
+            className="text-purple-300 hover:opacity-50 hover:underline"
+            href={`https://solscan.io/account/${item.vaultAddress}`}
+            passHref
+          >
+            {truncateWallet(item.vaultAddress, 26)}
           </Link>
         ),
-        vault: "SOL-USDC",
-        amount: `${formatLargeNumber(100000)} USDC`,
-        account: (
-          <span className="text-kamino-blue-light">
-            {truncateWallet("8dq7DkQY3EC1tpVxUkeFcH8wZtUWMRrh3KNr4wGdSCFa", 10)}
-          </span>
-        ),
-        time: "10 days ago",
-      },
-    ];
-  }, []);
+        time: moment.unix(item.timestamp).fromNow(),
+      })),
+    [allTransactions]
+  );
 
   return (
     <div>
@@ -217,13 +234,13 @@ const StatsTemplate: React.FC = () => {
 
         <CardBoxCustom className="mb-4" title="">
           <div className="w-full">
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <Filter
                 data={dataFilterTransactions}
                 currentValue={filterTransactions}
                 setCurrentValue={setFilterTransactions}
               />
-            </div>
+            </div> */}
             <Table
               head={headerTransactions}
               data={data as any}
@@ -260,9 +277,9 @@ const dataFilterTransactions = [
 
 const headerTransactions = [
   {
-    key: "token",
+    key: "transactionType",
     hiddenTitle: false,
-    title: "token",
+    title: "Transaction Type",
     width: 45,
   },
   {
@@ -272,15 +289,9 @@ const headerTransactions = [
     width: 10,
   },
   {
-    key: "amount",
+    key: "strategy",
     hiddenTitle: false,
-    title: "token amount",
-    width: 15,
-  },
-  {
-    key: "account",
-    hiddenTitle: false,
-    title: "account",
+    title: "strategy",
     width: 15,
   },
   {

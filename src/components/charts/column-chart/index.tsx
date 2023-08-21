@@ -120,10 +120,6 @@ const ColumnChart: React.FC<Props> = ({
     [height, bg, disableMarker, colors, data, currentFilter]
   );
 
-  React.useEffect(() => {
-    console.log({ data });
-  }, [data]);
-
   return (
     <Fragment>
       {currentFilter && (
