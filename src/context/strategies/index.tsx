@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  KaminoTransaction,
   PoolAndKaminoVolumes,
   TYPE_PERIOD,
   VolPerPeriod,
@@ -8,9 +9,32 @@ import {
   VolumeHistoryChart,
 } from "@/types/strategies";
 import api from "@/utils/api-service";
-import { network } from "@/utils/constants";
+import { network, provider } from "@/utils/constants";
+import {
+  Idl,
+  Program,
+  AnchorProvider,
+  BorshInstructionCoder,
+  BorshAccountsCoder,
+} from "@project-serum/anchor";
+import * as borsh from "@project-serum/borsh";
 import moment from "moment";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useSolana } from "../solana";
+import { getConfigByCluster } from "@hubbleprotocol/hubble-config";
+import { KAMINO_IDL } from "@hubbleprotocol/hubble-idl";
+import {
+  Keypair,
+  PartiallyDecodedInstruction,
+  Transaction,
+} from "@solana/web3.js";
+import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
 interface Props {
   children: JSX.Element;
@@ -38,6 +62,10 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const [volPerPeriod, setVolPerPeriod] = useState<{
     [key: string]: Volume;
   }>();
+  const { connection } = useSolana();
+  const [allTransactions, setAllTransactions] = useState<KaminoTransaction[]>(
+    []
+  );
 
   const fetchAllStrategies = useCallback(async () => {
     try {
@@ -137,6 +165,86 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
     }
   }, []);
 
+  const fetchTransactions = useCallback(async () => {
+    try {
+      const data: KaminoTransaction[] = [];
+      const coder = new BorshInstructionCoder(KAMINO_IDL as Idl);
+      const program = new Program(
+        KAMINO_IDL as Idl,
+        KAMINO_PROGRAM_ID,
+        provider
+      );
+
+      const confirmedSignatures =
+        await program.provider.connection.getConfirmedSignaturesForAddress2(
+          program.programId,
+          {
+            limit: 10,
+          }
+        );
+
+      const transactions =
+        await program.provider.connection.getParsedTransactions(
+          confirmedSignatures.map((item) => item.signature),
+          {
+            maxSupportedTransactionVersion: 0,
+          }
+        );
+
+      transactions.forEach((item) => {
+        if (!item) return;
+
+        item.transaction.message.instructions.forEach((i) => {
+          const instruction = i as PartiallyDecodedInstruction;
+
+          if (instruction.programId.toBase58() !== KAMINO_PROGRAM_ID.toBase58())
+            return;
+
+          const decodedBs58Instruction = coder.decode(
+            Buffer.from(bs58.decode(instruction.data))
+          );
+
+          if (
+            !decodedBs58Instruction ||
+            (decodedBs58Instruction.name !== "invest" &&
+              decodedBs58Instruction.name !== "depositAndInvest" &&
+              decodedBs58Instruction.name !== "deposit" &&
+              decodedBs58Instruction.name !== "withdraw")
+          )
+            return;
+
+          const accounts = KAMINO_IDL.instructions.find(
+            (idlInstruction) =>
+              idlInstruction.name === decodedBs58Instruction.name
+          )?.accounts;
+
+          if (!accounts) return;
+
+          data.push({
+            type: decodedBs58Instruction.name,
+            tokenAAmount: 0,
+            tokenBAmount: 0,
+            vaultName: "",
+            vaultAddress: "",
+            timestamp: 0,
+          });
+
+          instruction.accounts.forEach((account, index) => {
+            console.log(account.toBase58());
+            console.log(accounts[index]);
+            console.log("-----");
+          });
+        });
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
   const value = useMemo(
     () => ({
       historyVolume,
@@ -186,3 +294,6 @@ export interface CryptoSelect {
   name: string;
   token: string;
 }
+
+const { kamino } = getConfigByCluster("mainnet-beta");
+const KAMINO_PROGRAM_ID = kamino.programId;

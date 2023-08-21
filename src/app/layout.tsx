@@ -1,8 +1,6 @@
 import "../styles/globals.css";
-
 import type { Metadata } from "next";
 import AppProvider from "@/context";
-
 import Header from "@/components/header";
 import Menu from "@/components/menu";
 import { ibm_sans } from "@/utils/fonts";

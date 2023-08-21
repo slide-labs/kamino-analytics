@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-
 import { SolanaProvider } from "./solana";
 import { StrategiesProvider } from "./strategies";
 
