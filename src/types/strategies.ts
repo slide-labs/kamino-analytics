@@ -1,4 +1,4 @@
-export interface Strategie {
+export interface Strategy {
   address: string;
   type: TYPE_STRATEGY;
   shareMint: string;

@@ -34,7 +34,12 @@ const Input: React.FC<Props> = ({ className }) => {
       {blockStyles}
 
       <div className="bg-[#182133] relative z-[1] h-full flex items-center">
-        <input className="h-full w-full px-4 text-sm text-white placeholder:text-[#FFFFFF33]" type="text" placeholder="Search whirpools, strategies, tokens..." />
+        <input
+          disabled
+          className="h-full w-full px-4 text-sm text-white placeholder:text-[#FFFFFF33] cursor-not-allowed"
+          type="text"
+          placeholder="Search whirpools, strategies, tokens..."
+        />
         <IconSearch className="absolute right-4" />
       </div>
     </div>

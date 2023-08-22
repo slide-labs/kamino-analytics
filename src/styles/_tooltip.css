@@ -1,0 +1,68 @@
+.tooltip {
+  animation: tooltipEffect 0.3s linear;
+}
+
+@keyframes tooltipEffect {
+  0% {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+}
+
+.tooltip-content {
+  transition: all 0.2s ease-in-out;
+}
+
+.tooltip:hover .tooltip-content {
+  opacity: 1;
+}
+
+.tooltip-content::after {
+  content: "";
+  position: absolute;
+  background: #222b3c;
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  border-left: 0.5px solid #ffffff12;
+  border-top: 0.5px solid #ffffff12;
+}
+
+.tooltip-content.top {
+  top: -42px;
+}
+.tooltip-content.top::after {
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+}
+
+.tooltip-content.left {
+  right: calc(100% + 12px);
+}
+.tooltip-content.left::after {
+  right: -5px;
+}
+
+.tooltip-content.right {
+  left: calc(100% + 12px);
+}
+
+.tooltip-content.right::after {
+  left: -5px;
+}
+
+.tooltip-content.bottom {
+  bottom: -42px;
+}
+
+.tooltip-content.bottom::after {
+  top: -5px;
+}

@@ -4,6 +4,7 @@
 @import url("./_card-box-custom.css");
 @import url("./_input.css");
 @import url("./_wallet-adapter.css");
+@import url("./_tooltip.css");
 
 body {
   overflow-x: hidden;

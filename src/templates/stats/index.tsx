@@ -14,6 +14,7 @@ import { TYPE_PERIOD } from "@/types/strategies";
 import { useStrategies } from "@/context/strategies";
 import moment from "moment";
 import { useDebouncedCallback } from "use-debounce";
+import { formatTextTransaction } from "@/utils/format-text-transaction";
 
 const StatsTemplate: React.FC = () => {
   const {
@@ -32,7 +33,6 @@ const StatsTemplate: React.FC = () => {
     fetchTransactions,
   } = useStrategies();
   const [filterVaultUsed, setFilterVaultUsed] = useState("24h");
-  const [filterPools, setFilterPools] = useState("All");
   const [filterVolume, setFilterVolume] = useState("24h");
   const [filterFeeAndRewards, setFilterFeeAndRewards] = useState("24h");
 
@@ -91,10 +91,6 @@ const StatsTemplate: React.FC = () => {
         title: "Total Fees",
         value: "$" + formatLargeNumber(allTimeFees),
       },
-      // {
-      //   title: "Total Users",
-      //   value: "5.000",
-      // },
     ];
   }, [allTimeFees, tvl, volPerPeriod]);
 
@@ -201,7 +197,7 @@ const StatsTemplate: React.FC = () => {
 
       <div className="w-full grid grid-cols-4 gap-x-[12px] mb-3">
         {generalStatsBlock.map((item, index) => (
-          <CardBase key={index} data={item} />
+          <CardBase key={index} data={item} textSizeValue={26} />
         ))}
       </div>
 
@@ -216,30 +212,6 @@ const StatsTemplate: React.FC = () => {
           />
         </div>
       </CardBoxCustom>
-
-      {/* <div className="flex items-center mb-4 gap-x-[16px]">
-        <CardBoxCustom className="w-1/2 h-[350px]" title="New Users">
-          <div className="w-full h-full">
-            <LineChart
-              bg={"#151C2E"}
-              series={chartDataVolume}
-              height={250}
-              colors={colorsLineUsers as any}
-            />
-          </div>
-        </CardBoxCustom>
-
-        <CardBoxCustom className="w-1/2 h-[350px]" title="Users">
-          <div className="w-full h-full">
-            <LineChart
-              bg={"#151C2E"}
-              series={chartDataVolume}
-              height={250}
-              colors={colorsLineNewUsers as any}
-            />
-          </div>
-        </CardBoxCustom>
-      </div> */}
 
       <CardBoxCustom className="h-[426px] mb-4" title="Fees and Rewards">
         <div className="w-full overflow-hidden">
@@ -315,11 +287,3 @@ const headerTransactions = [
     width: 15,
   },
 ];
-
-const formatTextTransaction = (type: string) => {
-  if (type === "depositAndInvest") {
-    return "DEPOSIT AND INVEST";
-  }
-
-  return type;
-};

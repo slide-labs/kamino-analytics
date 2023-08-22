@@ -5,6 +5,7 @@ import {
   FeesAndRewardsChart,
   KaminoTransaction,
   PoolAndKaminoVolumes,
+  Strategy,
   TYPE_PERIOD,
   VaultsVolumes,
   VolPerPeriod,
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export type ContextValue = {
+  strategies: Strategy[];
   historyVolume: VolumeHistoryChart[];
   allTimeFees: number;
   tvl: number;
@@ -40,6 +42,7 @@ export type ContextValue = {
   fetchFeesAndRewards: (period: TYPE_PERIOD) => Promise<void>;
   allTransactions: KaminoTransaction[];
   fetchTransactions: (lastSignature?: string) => Promise<void>;
+  fetchAllStrategies: () => Promise<any>;
 };
 
 export const StrategiesContext = React.createContext<ContextValue | undefined>(
@@ -47,6 +50,7 @@ export const StrategiesContext = React.createContext<ContextValue | undefined>(
 );
 
 export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [historyVolume, setHistoryVolume] = useState<VolumeHistoryChart[]>([]);
   const [allTimeFees, setAllTimeFees] = useState<number>(0);
   const [tvl, setTvl] = useState<number>(0);
@@ -67,6 +71,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
     try {
       const response = await api.get(`/strategies?env=${network}&status=LIVE`);
 
+      setStrategies(response.data);
       return response.data;
     } catch {}
   }, []);
@@ -74,11 +79,12 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
   const fetchHistoryVolume = useCallback(
     async (period: TYPE_PERIOD) => {
       try {
-        const strategies = await fetchAllStrategies();
+        const strategiesData = await fetchAllStrategies();
+        if (!strategiesData) return;
 
         const dateToVolumeMap = new Map<number, number>();
 
-        for (const { address } of strategies) {
+        for (const { address } of strategiesData) {
           const metricsHistory = await api.get(
             `/strategies/${address}/metrics/history?env=${network}&period=${period}`
           );
@@ -268,8 +274,8 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       });
 
       newData.sort((a, b) => {
-        const volA = Number(a.kaminoVolume.amount);
-        const volB = Number(b.kaminoVolume.amount);
+        const volA = Number(a.kaminoVolume?.amount);
+        const volB = Number(b.kaminoVolume?.amount);
 
         if (volA > volB) {
           return -1;
@@ -321,6 +327,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
 
   const value = useMemo(
     () => ({
+      strategies,
       historyVolume,
       allTimeFees,
       tvl,
@@ -334,8 +341,10 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       filterVolumeVaults,
       fetchFeesAndRewards,
       fetchTransactions,
+      fetchAllStrategies,
     }),
     [
+      strategies,
       historyVolume,
       allTimeFees,
       tvl,
@@ -349,6 +358,7 @@ export const StrategiesProvider: React.FC<Props> = ({ children, ...rest }) => {
       filterVolumeVaults,
       fetchFeesAndRewards,
       fetchTransactions,
+      fetchAllStrategies,
     ]
   );
 

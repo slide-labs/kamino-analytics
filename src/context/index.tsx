@@ -3,6 +3,7 @@
 import React from "react";
 import { SolanaProvider } from "./solana";
 import { StrategiesProvider } from "./strategies";
+import { ShareholderProvider } from "./shareholder";
 
 interface Props {
   children: JSX.Element;
@@ -10,7 +11,9 @@ interface Props {
 
 const AppProvider: React.FC<Props> = ({ children }) => (
   <SolanaProvider>
-    <StrategiesProvider>{children}</StrategiesProvider>
+    <StrategiesProvider>
+      <ShareholderProvider>{children}</ShareholderProvider>
+    </StrategiesProvider>
   </SolanaProvider>
 );
 

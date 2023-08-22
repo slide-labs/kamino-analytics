@@ -6,6 +6,7 @@ import Input from "../input";
 import ConnectWallet from "../connect-wallet";
 import ModalConnect from "../modal-connect";
 import { useSolana } from "@/context/solana";
+import Tooltip from "../tooltip";
 
 const Header: React.FC = () => {
   const { openConnect } = useSolana();
@@ -26,7 +27,13 @@ const Header: React.FC = () => {
         </div>
 
         <div className="w-[360px]">
-          <Input />
+          <Tooltip
+            className="w-full cursor-not-allowed"
+            tooltipMessage={"coming soon"}
+            direction={"bottom"}
+          >
+            <Input />
+          </Tooltip>
         </div>
 
         {isClient && <ConnectWallet />}
