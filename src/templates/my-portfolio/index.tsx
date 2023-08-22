@@ -59,7 +59,7 @@ const MyPortfolioTemplate: React.FC = () => {
         ),
         amount: (
           <span className="text-xs">
-            ${formatLargeNumber(Number(item.usdValue)) || "-"}
+            ${formatLargeNumber(Number(item?.usdValue || 0)) || "-"}
           </span>
         ),
         vault: (

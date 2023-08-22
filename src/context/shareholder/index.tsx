@@ -50,14 +50,14 @@ export const ShareholderProvider: React.FC<Props> = ({ children, ...rest }) => {
     };
 
     filterDepositAndInvest.forEach((item) => {
-      const convertToValue = Number(item.usdValue);
+      const convertToValue = Number(item?.usdValue || 0);
       calc.usdValue += convertToValue;
     });
 
     setBalances((prev) => ({
       ...prev,
-      totalDeposit: calc.usdValue,
-      lastDeposit: Number(filterDepositAndInvest[0].usdValue),
+      totalDeposit: calc?.usdValue || 0,
+      lastDeposit: Number(filterDepositAndInvest[0]?.usdValue) || 0,
     }));
   }, []);
 
@@ -71,13 +71,13 @@ export const ShareholderProvider: React.FC<Props> = ({ children, ...rest }) => {
     };
 
     filterWithdraw.forEach((item) => {
-      const convertToValue = Number(item.usdValue);
+      const convertToValue = Number(item?.usdValue || 0);
       calc.usdValue += convertToValue;
     });
 
     setBalances((prev) => ({
       ...prev,
-      totalWithdraw: calc.usdValue,
+      totalWithdraw: calc.usdValue || 0,
     }));
   }, []);
 
